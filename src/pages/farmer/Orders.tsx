@@ -95,11 +95,6 @@ export const FarmerOrders = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-        <p className="text-gray-600 mt-2">Manage your incoming orders</p>
-      </div>
-
       {orders.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">

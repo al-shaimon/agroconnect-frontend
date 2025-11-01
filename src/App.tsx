@@ -34,7 +34,8 @@ function App() {
   const isDashboardRoute =
     location.pathname.startsWith('/farmer/') ||
     location.pathname.startsWith('/buyer/') ||
-    location.pathname.startsWith('/admin/');
+    location.pathname.startsWith('/admin/') ||
+    location.pathname === '/profile';
 
   // Show loading screen while initializing
   if (isLoading) {

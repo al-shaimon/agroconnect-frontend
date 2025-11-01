@@ -63,6 +63,7 @@ export interface Product {
   price: number;
   unit: string;
   availableQuantity: number;
+  imageUrl?: string;
   quality: 'Premium' | 'Standard' | 'Organic';
   harvestDate?: string;
   isAvailable: boolean;
@@ -170,6 +171,7 @@ export interface FarmerStats {
     confirmed: number;
     inTransit: number;
     delivered: number;
+    cancelled: number;
   };
   revenue: {
     total: number;

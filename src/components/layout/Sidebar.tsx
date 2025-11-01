@@ -11,6 +11,7 @@ import {
   Store,
   Receipt,
   FileCheck,
+  UserCircle,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -27,12 +28,14 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     { to: '/farmer/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/farmer/products', icon: Package, label: 'My Products' },
     { to: '/farmer/orders', icon: ClipboardList, label: 'Orders' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
   const buyerLinks = [
     { to: '/buyer/marketplace', icon: Store, label: 'Marketplace' },
     { to: '/buyer/orders', icon: Receipt, label: 'My Orders' },
     { to: '/buyer/cart', icon: ShoppingBag, label: 'Cart' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
   const adminLinks = [
@@ -41,6 +44,7 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/orders', icon: ClipboardList, label: 'Orders' },
     { to: '/admin/broadcast', icon: Bell, label: 'Broadcast' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
   const getLinks = () => {
