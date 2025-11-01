@@ -58,13 +58,6 @@ export const Marketplace = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold" style={{ color: COLORS.primary }}>
-          Marketplace
-        </h1>
-        <p className="text-gray-600">Browse fresh products from local farmers</p>
-      </div>
-
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 flex gap-2">
           <Input

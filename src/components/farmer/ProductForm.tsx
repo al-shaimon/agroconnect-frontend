@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { farmerService } from '../../services/farmerService';
@@ -7,17 +7,27 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { PRODUCT_CATEGORIES, PRODUCT_QUALITIES, COLORS } from '../../constants/theme';
+import { Card, CardContent } from '../ui/card';
+import {
+  PRODUCT_CATEGORIES,
+  PRODUCT_QUALITIES,
+  PRODUCT_UNITS,
+  COLORS,
+} from '../../constants/theme';
+import { X } from 'lucide-react';
 import type { ProductFormData } from '../../types';
+import { useAuth } from '../../hooks/useAuth';
 
 interface ProductFormProps {
   onSuccess?: () => void;
-  initialData?: ProductFormData & { _id?: string };
+  initialData?: ProductFormData & { _id?: string; imageUrl?: string };
 }
 
 export const ProductForm = ({ onSuccess, initialData }: ProductFormProps) => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>(initialData?.imageUrl || '');
   const {
     register,
     handleSubmit,
@@ -27,14 +37,72 @@ export const ProductForm = ({ onSuccess, initialData }: ProductFormProps) => {
     defaultValues: initialData,
   });
 
+  const isVerified = user?.verificationStatus === 'approved';
+
+  // Format harvest date for the date input field
+  useEffect(() => {
+    if (initialData?.harvestDate) {
+      // Convert ISO date to YYYY-MM-DD format for input[type="date"]
+      const date = new Date(initialData.harvestDate);
+      const formattedDate = date.toISOString().split('T')[0];
+      setValue('harvestDate', formattedDate);
+    }
+  }, [initialData, setValue]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size must be less than 5MB');
+        return;
+      }
+      if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+        toast.error('Only JPEG, JPG, PNG, and WebP images are allowed');
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    const input = document.getElementById('productImage') as HTMLInputElement;
+    if (input) input.value = '';
+  };
+
   const onSubmit = async (data: ProductFormData) => {
+    if (!isVerified) {
+      toast.error('You must be verified by admin before adding or updating products.');
+      return;
+    }
+
     setIsLoading(true);
     try {
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('category', data.category);
+      formData.append('description', data.description);
+      formData.append('price', data.price.toString());
+      formData.append('unit', data.unit);
+      formData.append('availableQuantity', data.availableQuantity.toString());
+      formData.append('quality', data.quality);
+      if (data.harvestDate) {
+        formData.append('harvestDate', data.harvestDate);
+      }
+      if (data.location) {
+        formData.append('location', data.location);
+      }
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
       if (initialData?._id) {
-        await farmerService.updateProduct(initialData._id, data);
+        await farmerService.updateProduct(initialData._id, formData);
         toast.success('Product updated successfully!');
       } else {
-        await farmerService.createProduct(data);
+        await farmerService.createProduct(formData);
         toast.success('Product created successfully!');
       }
       onSuccess?.();
@@ -48,12 +116,7 @@ export const ProductForm = ({ onSuccess, initialData }: ProductFormProps) => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle style={{ color: COLORS.primary }}>
-          {initialData?._id ? 'Edit Product' : 'Add New Product'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -98,13 +161,22 @@ export const ProductForm = ({ onSuccess, initialData }: ProductFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="unit">Unit *</Label>
-              <Input
-                id="unit"
-                placeholder="kg"
-                {...register('unit', { required: 'Unit is required' })}
-              />
-              {errors.unit && <p className="text-sm text-red-500">{errors.unit.message}</p>}
+              <Label>Unit *</Label>
+              <Select
+                onValueChange={(value) => setValue('unit', value)}
+                defaultValue={initialData?.unit || 'kg'}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRODUCT_UNITS.map((unit) => (
+                    <SelectItem key={unit} value={unit}>
+                      {unit}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -153,6 +225,36 @@ export const ProductForm = ({ onSuccess, initialData }: ProductFormProps) => {
             {errors.description && (
               <p className="text-sm text-red-500">{errors.description.message}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="productImage">Product Image</Label>
+            <div className="space-y-2">
+              <Input
+                id="productImage"
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleImageChange}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-gray-500">Max size: 5MB. Formats: JPEG, JPG, PNG, WebP</p>
+              {imagePreview && (
+                <div className="relative w-full max-w-xs mt-2">
+                  <img
+                    src={imagePreview}
+                    alt="Product preview"
+                    className="w-full h-48 object-cover rounded-lg border"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">

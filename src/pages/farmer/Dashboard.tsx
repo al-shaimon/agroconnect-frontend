@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { farmerService } from '../../services/farmerService';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { COLORS } from '../../constants/theme';
-import { Package, ShoppingBag, DollarSign, TrendingUp } from 'lucide-react';
+import { Package, ShoppingBag, DollarSign, Clock, XCircle } from 'lucide-react';
 import type { FarmerStats } from '../../types';
-import { ProductList } from '../../components/farmer/ProductList';
-import { OrderNotifications } from '../../components/farmer/OrderNotifications';
+import { RevenueChart } from '../../components/farmer/RevenueChart';
 
 export const FarmerDashboard = () => {
   const [stats, setStats] = useState<FarmerStats | null>(null);
@@ -41,8 +40,14 @@ export const FarmerDashboard = () => {
     {
       title: 'Pending Orders',
       value: stats?.orders.pending || 0,
-      icon: TrendingUp,
+      icon: Clock,
       color: '#f59e0b',
+    },
+    {
+      title: 'Cancelled Orders',
+      value: stats?.orders.cancelled || 0,
+      icon: XCircle,
+      color: '#ef4444',
     },
     {
       title: 'Total Revenue',
@@ -54,14 +59,7 @@ export const FarmerDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold" style={{ color: COLORS.primary }}>
-          Farmer Dashboard
-        </h1>
-        <p className="text-gray-600">Manage your products and orders</p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -77,12 +75,7 @@ export const FarmerDashboard = () => {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <OrderNotifications />
-        <div>
-          <ProductList />
-        </div>
-      </div>
+      <RevenueChart />
     </div>
   );
 };

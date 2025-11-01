@@ -21,6 +21,8 @@ export const PRODUCT_CATEGORIES = ['Vegetable', 'Fruit', 'Grain', 'Dairy', 'Poul
 
 export const PRODUCT_QUALITIES = ['Premium', 'Standard', 'Organic'] as const;
 
+export const PRODUCT_UNITS = ['kg', 'gram', 'liter', 'piece', 'dozen', 'bundle'] as const;
+
 export const ORDER_STATUSES = {
   PENDING: 'pending',
   CONFIRMED: 'confirmed',

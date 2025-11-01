@@ -140,9 +140,6 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                     <DropdownMenuItem onClick={() => navigate(getDashboardLink())}>
                       Dashboard
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
-                      Profile
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Logout

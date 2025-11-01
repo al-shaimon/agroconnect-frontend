@@ -3,8 +3,10 @@ import type { AuthResponse, LoginFormData, RegisterFormData, User, ApiResponse }
 
 export const authService = {
   // Register new user
-  register: async (data: RegisterFormData): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/register', data);
+  register: async (data: RegisterFormData | FormData): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/register', data, {
+      headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
+    });
     if (response.data.data?.token) {
       localStorage.setItem('token', response.data.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.data));
@@ -35,8 +37,10 @@ export const authService = {
   },
 
   // Update user profile
-  updateProfile: async (data: Partial<User>): Promise<ApiResponse<User>> => {
-    const response = await api.put<ApiResponse<User>>('/auth/profile', data);
+  updateProfile: async (data: Partial<User> | FormData): Promise<ApiResponse<User>> => {
+    const response = await api.put<ApiResponse<User>>('/auth/profile', data, {
+      headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
+    });
     return response.data;
   },
 
