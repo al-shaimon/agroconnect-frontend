@@ -178,13 +178,15 @@ export interface CartItem {
 // Notification Types
 export interface Notification {
   _id: string;
-  userId?: string;
-  type: 'order' | 'broadcast' | 'status_update';
+  recipientId?: string;
+  recipientRole?: 'farmer' | 'buyer' | 'all';
+  type: 'order' | 'broadcast' | 'system' | 'verification';
   title: string;
   message: string;
   orderId?: string;
   isRead: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 // Stats Types

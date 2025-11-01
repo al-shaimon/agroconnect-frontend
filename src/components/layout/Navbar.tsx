@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui/button';
 import { COLORS } from '../../constants/theme';
-import { Menu, ShoppingCart, Bell, LogOut, User, Sprout, ChevronDown } from 'lucide-react';
+import { Menu, ShoppingCart, LogOut, User, Sprout, ChevronDown } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore';
 import {
   DropdownMenu,
@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Badge } from '../ui/badge';
-
+import { NotificationBell } from '../shared/NotificationBell';
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -126,9 +126,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                   </Button>
                 )}
 
-                <Button variant="ghost" size="icon" onClick={() => navigate('/notifications')}>
-                  <Bell className="h-5 w-5" />
-                </Button>
+                <NotificationBell />
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

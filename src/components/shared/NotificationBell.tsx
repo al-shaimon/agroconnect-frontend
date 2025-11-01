@@ -6,6 +6,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../ui/dr
 import { ScrollArea } from '../ui/scroll-area';
 import { notificationService } from '../../services/notificationService';
 import { useSocket } from '../../hooks/useSocket';
+import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import type { Notification } from '../../types';
 import { COLORS } from '../../constants/theme';
 import { toast } from 'react-toastify';
@@ -15,6 +17,8 @@ export const NotificationBell = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const { on, off } = useSocket();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const fetchNotifications = async () => {
     try {
@@ -45,14 +49,65 @@ export const NotificationBell = () => {
     };
   }, [on, off]);
 
-  const handleMarkAsRead = async (id: string) => {
-    try {
-      await notificationService.markAsRead(id);
-      setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Failed to mark as read:', error);
+  const getNotificationPath = (notification: Notification): string => {
+    const role = user?.role;
+
+    // Handle order notifications
+    if (notification.type === 'order' && notification.orderId) {
+      if (role === 'farmer') {
+        return `/farmer/orders`;
+      } else if (role === 'buyer') {
+        // TODO: Create buyer orders page, for now redirect to marketplace
+        return `/buyer/marketplace`;
+      }
     }
+
+    // Handle verification notifications
+    if (notification.type === 'verification') {
+      if (role === 'farmer' || role === 'buyer') {
+        return '/profile';
+      }
+    }
+
+    // Handle system notifications (document submission for admin)
+    if (notification.type === 'system') {
+      if (role === 'admin') {
+        return '/admin/verifications';
+      }
+    }
+
+    // Handle broadcast notifications
+    if (notification.type === 'broadcast') {
+      if (role === 'farmer') {
+        return '/farmer/dashboard';
+      } else if (role === 'buyer') {
+        return '/buyer/marketplace';
+      } else if (role === 'admin') {
+        return '/admin/panel';
+      }
+    }
+
+    // Default fallback
+    return '/';
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    // Mark as read if not already read
+    if (!notification.isRead) {
+      try {
+        await notificationService.markAsRead(notification._id);
+        setNotifications((prev) =>
+          prev.map((n) => (n._id === notification._id ? { ...n, isRead: true } : n))
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      } catch (error) {
+        console.error('Failed to mark as read:', error);
+      }
+    }
+
+    // Navigate to relevant page
+    const path = getNotificationPath(notification);
+    navigate(path);
   };
 
   const handleMarkAllAsRead = async () => {
@@ -102,10 +157,10 @@ export const NotificationBell = () => {
               {notifications.map((notification) => (
                 <div
                   key={notification._id}
-                  className={`p-3 cursor-pointer hover:bg-gray-50 ${
+                  className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
                     !notification.isRead ? 'bg-green-50' : ''
                   }`}
-                  onClick={() => !notification.isRead && handleMarkAsRead(notification._id)}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
@@ -119,7 +174,7 @@ export const NotificationBell = () => {
                     </div>
                     {!notification.isRead && (
                       <div
-                        className="h-2 w-2 rounded-full"
+                        className="h-2 w-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: COLORS.primary }}
                       />
                     )}
