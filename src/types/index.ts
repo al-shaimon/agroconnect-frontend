@@ -108,7 +108,6 @@ export interface ProductSlot {
   createdAt: string;
   updatedAt: string;
 }
-}
 
 // Order Types
 export interface OrderItem {
