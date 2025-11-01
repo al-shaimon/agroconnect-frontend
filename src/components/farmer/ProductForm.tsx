@@ -16,6 +16,7 @@ import {
 } from '../../constants/theme';
 import { X } from 'lucide-react';
 import type { ProductFormData } from '../../types';
+import { useAuth } from '../../hooks/useAuth';
 
 interface ProductFormProps {
   onSuccess?: () => void;
@@ -23,6 +24,7 @@ interface ProductFormProps {
 }
 
 export const ProductForm = ({ onSuccess, initialData }: ProductFormProps) => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>(initialData?.imageUrl || '');
@@ -34,6 +36,8 @@ export const ProductForm = ({ onSuccess, initialData }: ProductFormProps) => {
   } = useForm<ProductFormData>({
     defaultValues: initialData,
   });
+
+  const isVerified = user?.verificationStatus === 'approved';
 
   // Format harvest date for the date input field
   useEffect(() => {
@@ -69,6 +73,11 @@ export const ProductForm = ({ onSuccess, initialData }: ProductFormProps) => {
   };
 
   const onSubmit = async (data: ProductFormData) => {
+    if (!isVerified) {
+      toast.error('You must be verified by admin before adding or updating products.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const formData = new FormData();
