@@ -32,6 +32,7 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
   ];
 
   const buyerLinks = [
+    { to: '/buyer/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/buyer/marketplace', icon: Store, label: 'Marketplace' },
     { to: '/buyer/orders', icon: Receipt, label: 'My Orders' },
     { to: '/buyer/cart', icon: ShoppingBag, label: 'Cart' },

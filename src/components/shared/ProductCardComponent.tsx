@@ -1,9 +1,7 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
-import Image from "@/components/ui/image";
-
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { ShoppingCart } from 'lucide-react';
 
 interface Product {
   _id: string;
@@ -30,10 +28,10 @@ interface ProductCardProps {
   onAddToCart?: (product: Product) => void;
 }
 
-export default function ProductCardComponent({ 
-  product, 
+export default function ProductCardComponent({
+  product,
   isLoading = false,
-  onAddToCart 
+  onAddToCart,
 }: ProductCardProps) {
   if (isLoading) {
     return (
@@ -56,9 +54,9 @@ export default function ProductCardComponent({
 
   if (!product) return null;
 
-  const formattedPrice = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "BDT",
+  const formattedPrice = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'BDT',
   }).format(product.price);
 
   const handleAddToCart = () => {
@@ -71,12 +69,8 @@ export default function ProductCardComponent({
     <Card className="w-full max-w-sm overflow-hidden transition-all duration-300 hover:shadow-lg">
       <CardContent className="p-0">
         <div className="relative h-48 w-full">
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            className="h-full w-full object-cover"
-            cloudinaryId={product.cloudinaryPublicId}
-          />
+          {/* Using a plain img tag since this is a Vite React app (not Next.js) */}
+          <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
           {!product.isAvailable && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
               <p className="text-white font-semibold text-lg">Out of Stock</p>
@@ -90,9 +84,7 @@ export default function ProductCardComponent({
         </div>
         <div className="p-4 space-y-2">
           <h3 className="font-semibold text-lg line-clamp-1">{product.name}</h3>
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {product.description}
-          </p>
+          <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
           <div className="flex items-center gap-2">
             <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
               {product.category}
@@ -112,9 +104,7 @@ export default function ProductCardComponent({
           <div className="flex justify-between items-center mt-4">
             <div>
               <p className="font-semibold text-lg">{formattedPrice}</p>
-              <p className="text-sm text-muted-foreground">
-                per {product.unit}
-              </p>
+              <p className="text-sm text-muted-foreground">per {product.unit}</p>
             </div>
             <Button
               onClick={handleAddToCart}
