@@ -32,7 +32,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
       case 'farmer':
         return '/farmer/dashboard';
       case 'buyer':
-        return '/buyer/marketplace';
+        return '/buyer/dashboard';
       case 'admin':
         return '/admin/panel';
       default:

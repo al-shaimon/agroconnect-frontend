@@ -21,8 +21,7 @@ import { Register } from './pages/auth/Register';
 import { FarmerDashboard } from './pages/farmer/Dashboard';
 import { ManageProducts } from './pages/farmer/ManageProducts';
 import { FarmerOrders } from './pages/farmer/Orders';
-import { Marketplace } from './pages/buyer/Marketplace';
-import { ProductDetail } from './pages/buyer/ProductDetail';
+import { Marketplace, ProductDetail, BuyerDashboard, BuyerOrders } from './pages/buyer';
 import { Profile } from './pages/Profile';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { AdminVerifications } from './pages/admin/Verifications';
@@ -119,6 +118,14 @@ function App() {
 
               {/* Buyer Routes */}
               <Route
+                path="/buyer/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['buyer']}>
+                    <BuyerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/buyer/marketplace"
                 element={
                   <ProtectedRoute allowedRoles={['buyer']}>
@@ -131,6 +138,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['buyer']}>
                     <ProductDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/buyer/orders"
+                element={
+                  <ProtectedRoute allowedRoles={['buyer']}>
+                    <BuyerOrders />
                   </ProtectedRoute>
                 }
               />
