@@ -1,11 +1,12 @@
 import { create } from 'zustand';
-import type { CartItem, Product } from '../types';
+import type { CartItem, Product, DeliverySlotInfo } from '../types';
 
 interface CartState {
   items: CartItem[];
-  addItem: (product: Product, quantity: number) => void;
+  addItem: (product: Product, quantity: number, slot?: DeliverySlotInfo) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  updateSlot: (productId: string, slot: DeliverySlotInfo) => void;
   clearCart: () => void;
   getTotalAmount: () => number;
   getTotalItems: () => number;
@@ -14,18 +15,24 @@ interface CartState {
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
 
-  addItem: (product, quantity) => {
+  addItem: (product, quantity, slot) => {
     const { items } = get();
     const existingItem = items.find((item) => item.product._id === product._id);
 
     if (existingItem) {
       set({
         items: items.map((item) =>
-          item.product._id === product._id ? { ...item, quantity: item.quantity + quantity } : item
+          item.product._id === product._id
+            ? {
+                ...item,
+                quantity: item.quantity + quantity,
+                selectedSlot: slot || item.selectedSlot,
+              }
+            : item
         ),
       });
     } else {
-      set({ items: [...items, { product, quantity }] });
+      set({ items: [...items, { product, quantity, selectedSlot: slot }] });
     }
   },
 
@@ -41,6 +48,14 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
       items: get().items.map((item) =>
         item.product._id === productId ? { ...item, quantity } : item
+      ),
+    });
+  },
+
+  updateSlot: (productId, slot) => {
+    set({
+      items: get().items.map((item) =>
+        item.product._id === productId ? { ...item, selectedSlot: slot } : item
       ),
     });
   },

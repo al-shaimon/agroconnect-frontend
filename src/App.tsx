@@ -22,6 +22,7 @@ import { FarmerDashboard } from './pages/farmer/Dashboard';
 import { ManageProducts } from './pages/farmer/ManageProducts';
 import { FarmerOrders } from './pages/farmer/Orders';
 import { Marketplace } from './pages/buyer/Marketplace';
+import { ProductDetail } from './pages/buyer/ProductDetail';
 import { Profile } from './pages/Profile';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { AdminVerifications } from './pages/admin/Verifications';
@@ -122,6 +123,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['buyer']}>
                     <Marketplace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/buyer/product/:id"
+                element={
+                  <ProtectedRoute allowedRoles={['buyer']}>
+                    <ProductDetail />
                   </ProtectedRoute>
                 }
               />

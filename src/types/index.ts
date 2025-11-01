@@ -85,6 +85,31 @@ export interface ProductFormData {
   location?: string;
 }
 
+// Slot Types
+export interface TimeSlot {
+  start: string;
+  end: string;
+}
+
+export interface DeliverySlotInfo {
+  date: string;
+  timeSlot: TimeSlot;
+}
+
+export interface ProductSlot {
+  _id: string;
+  productId: string;
+  farmerId: string;
+  date: Date;
+  timeSlot: TimeSlot;
+  availableQuantity: number;
+  originalQuantity: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+}
+
 // Order Types
 export interface OrderItem {
   productId: string;
@@ -92,6 +117,7 @@ export interface OrderItem {
   quantity: number;
   pricePerUnit: number;
   subtotal: number;
+  deliverySlot?: DeliverySlotInfo;
 }
 
 export interface DeliveryAddress {
@@ -137,6 +163,7 @@ export interface CreateOrderData {
   items: Array<{
     productId: string;
     quantity: number;
+    deliverySlot?: DeliverySlotInfo;
   }>;
   deliveryAddress: DeliveryAddress;
   notes?: string;
@@ -146,6 +173,7 @@ export interface CreateOrderData {
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedSlot?: DeliverySlotInfo;
 }
 
 // Notification Types
