@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../../components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { COLORS } from '../../constants/theme';
 import {
   ShoppingCart,
@@ -34,10 +35,21 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
+type TimeSlot = {
+  start: string;
+  end: string;
+};
+
+type DeliverySlot = {
+  date: string;
+  timeSlot: TimeSlot;
+};
+
 export const Cart = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { items, removeItem, updateQuantity, getTotalAmount, clearCart } = useCartStore();
+  const { items, removeItem, updateQuantity, updateSlot, getTotalAmount, clearCart } =
+    useCartStore();
 
   const [deliveryAddress, setDeliveryAddress] = useState({
     street: user?.location?.area || '',
@@ -58,11 +70,70 @@ export const Cart = () => {
   const totalAmount = getTotalAmount();
   const grandTotal = totalAmount + deliveryFee;
 
+  // Generate delivery slots
+  const generateDeliverySlots = (): DeliverySlot[] => {
+    const slots: DeliverySlot[] = [];
+    const timeSlots: TimeSlot[] = [
+      { start: '10:00', end: '12:00' },
+      { start: '12:00', end: '14:00' },
+      { start: '14:00', end: '16:00' },
+      { start: '16:00', end: '18:00' },
+      { start: '18:00', end: '20:00' },
+      { start: '20:00', end: '22:00' },
+    ];
+
+    // Get current time in Bangladesh timezone (UTC+6)
+    const bdTimeString = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' });
+    const bdTime = new Date(bdTimeString);
+    const currentHour = bdTime.getHours();
+    const currentMinutes = bdTime.getMinutes();
+
+    // Show only next 2 days
+    for (let i = 0; i < 2; i++) {
+      const date = new Date(bdTime);
+      date.setDate(date.getDate() + i);
+
+      // Format date as YYYY-MM-DD in Bangladesh timezone
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
+      const isToday = i === 0;
+
+      timeSlots.forEach((timeSlot) => {
+        // If it's today, only show slots where end time hasn't passed yet
+        if (isToday) {
+          const slotEndHour = parseInt(timeSlot.end.split(':')[0]);
+          const slotEndMinutes = parseInt(timeSlot.end.split(':')[1]);
+
+          // Skip if slot end time has already passed
+          if (
+            slotEndHour < currentHour ||
+            (slotEndHour === currentHour && slotEndMinutes <= currentMinutes)
+          ) {
+            return;
+          }
+        }
+
+        slots.push({ date: dateStr, timeSlot });
+      });
+    }
+
+    return slots;
+  };
+
+  const handleSelectSlot = (productId: string, slot: DeliverySlot) => {
+    updateSlot(productId, slot);
+    toast.success('Delivery slot selected');
+  };
+
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     const item = items.find((i) => i.product._id === productId);
     if (!item) return;
 
-    if (newQuantity > item.product.availableQuantity) {
+    // Guard if availableQuantity is undefined
+    if (item.product.availableQuantity != null && newQuantity > item.product.availableQuantity) {
       toast.error(`Only ${item.product.availableQuantity} units available`);
       return;
     }
@@ -128,6 +199,9 @@ export const Cart = () => {
             ? item.product.farmerId._id
             : item.product.farmerId;
 
+        // Skip items without a valid farmerId
+        if (!farmerId) return acc;
+
         if (!acc[farmerId]) {
           acc[farmerId] = [];
         }
@@ -179,7 +253,24 @@ export const Cart = () => {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-BD', {
+    // Parse the date string and display in Bangladesh timezone
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+
+    // Get current BD date to check if it's today or tomorrow
+    const bdTimeString = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' });
+    const bdTime = new Date(bdTimeString);
+    const today = new Date(bdTime.getFullYear(), bdTime.getMonth(), bdTime.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (date.getTime() === tomorrow.getTime()) {
+      return 'Tomorrow';
+    }
+
+    return date.toLocaleDateString('en-BD', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
@@ -307,33 +398,35 @@ export const Cart = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {items.map((item) => (
-                    <div key={item.product._id} className="flex gap-4 p-4 border rounded-lg">
-                      {item.product.imageUrl && (
-                        <img
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
-                          className="w-20 h-20 object-cover rounded"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{item.product.name}</h4>
-                        <p className="text-sm text-gray-600">
-                          ৳{item.product.price} × {item.quantity} = ৳
-                          {(item.product.price * item.quantity).toFixed(2)}
-                        </p>
-                        {item.selectedSlot && (
-                          <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(item.selectedSlot.date)}
-                            <Clock className="h-3 w-3 ml-2" />
-                            {formatTime(item.selectedSlot.timeSlot.start)} -{' '}
-                            {formatTime(item.selectedSlot.timeSlot.end)}
-                          </div>
+                  {items.map((item) => {
+                    const price = item.product.price ?? 0;
+                    return (
+                      <div key={item.product._id} className="flex gap-4 p-4 border rounded-lg">
+                        {item.product.imageUrl && (
+                          <img
+                            src={item.product.imageUrl}
+                            alt={item.product.name}
+                            className="w-20 h-20 object-cover rounded"
+                          />
                         )}
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{item.product.name}</h4>
+                          <p className="text-sm text-gray-600">
+                            ৳{price} × {item.quantity} = ৳{(price * item.quantity).toFixed(2)}
+                          </p>
+                          {item.selectedSlot && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(item.selectedSlot.date)}
+                              <Clock className="h-3 w-3 ml-2" />
+                              {formatTime(item.selectedSlot.timeSlot.start)} -{' '}
+                              {formatTime(item.selectedSlot.timeSlot.end)}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -498,6 +591,7 @@ export const Cart = () => {
         <div className="md:col-span-2 space-y-4">
           {items.map((item) => {
             const farmer = typeof item.product.farmerId === 'object' ? item.product.farmerId : null;
+            const price = item.product.price ?? 0;
 
             return (
               <Card key={item.product._id}>
@@ -570,39 +664,129 @@ export const Cart = () => {
 
                         <div className="text-right">
                           <p className="text-sm text-gray-600">
-                            ৳{item.product.price} × {item.quantity}
+                            ৳{price} × {item.quantity}
                           </p>
                           <p className="text-lg font-bold" style={{ color: COLORS.primary }}>
-                            ৳{(item.product.price * item.quantity).toFixed(2)}
+                            ৳{(price * item.quantity).toFixed(2)}
                           </p>
                         </div>
                       </div>
 
-                      {item.selectedSlot && (
-                        <div className="flex items-center gap-2 p-2 bg-green-50 rounded text-sm">
-                          <Calendar className="h-4 w-4 text-green-600" />
-                          <span>{formatDate(item.selectedSlot.date)}</span>
-                          <Clock className="h-4 w-4 text-green-600 ml-2" />
-                          <span>
-                            {formatTime(item.selectedSlot.timeSlot.start)} -{' '}
-                            {formatTime(item.selectedSlot.timeSlot.end)}
-                          </span>
+                      {item.selectedSlot ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-green-600" />
+                              <span className="font-medium">
+                                {formatDate(item.selectedSlot.date)}
+                              </span>
+                              <Clock className="h-4 w-4 text-green-600 ml-2" />
+                              <span>
+                                {formatTime(item.selectedSlot.timeSlot.start)} -{' '}
+                                {formatTime(item.selectedSlot.timeSlot.end)}
+                              </span>
+                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  Change Slot
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80" align="end">
+                                <div className="space-y-3">
+                                  <h4 className="font-semibold">Select Delivery Time</h4>
+                                  {generateDeliverySlots()
+                                    .reduce((acc, slot) => {
+                                      const existing = acc.find((s) => s.date === slot.date);
+                                      if (existing) {
+                                        existing.slots.push(slot);
+                                      } else {
+                                        acc.push({ date: slot.date, slots: [slot] });
+                                      }
+                                      return acc;
+                                    }, [] as { date: string; slots: DeliverySlot[] }[])
+                                    .map((group) => (
+                                      <div key={group.date} className="space-y-2">
+                                        <h5 className="text-sm font-medium text-gray-700">
+                                          {formatDate(group.date)}
+                                        </h5>
+                                        <div className="grid grid-cols-2 gap-2">
+                                          {group.slots.map((slot, idx) => (
+                                            <button
+                                              key={idx}
+                                              onClick={() =>
+                                                handleSelectSlot(item.product._id, slot)
+                                              }
+                                              className="p-2 text-xs border rounded hover:border-green-500 hover:bg-green-50 transition-colors text-left"
+                                            >
+                                              <div className="flex items-center gap-1">
+                                                <Clock className="h-3 w-3" />
+                                                <span>
+                                                  {formatTime(slot.timeSlot.start)} -{' '}
+                                                  {formatTime(slot.timeSlot.end)}
+                                                </span>
+                                              </div>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
                         </div>
-                      )}
-
-                      {!item.selectedSlot && (
-                        <Alert variant="destructive">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>
-                            Please select delivery slot from{' '}
-                            <button
-                              onClick={() => navigate(`/buyer/product/${item.product._id}`)}
-                              className="underline font-semibold"
+                      ) : (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full border-orange-300 text-orange-700 hover:bg-orange-50"
                             >
-                              product page
-                            </button>
-                          </AlertDescription>
-                        </Alert>
+                              <Calendar className="h-4 w-4 mr-2" />
+                              Select Delivery Slot
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80" align="start">
+                            <div className="space-y-3">
+                              <h4 className="font-semibold">Select Delivery Time</h4>
+                              {generateDeliverySlots()
+                                .reduce((acc, slot) => {
+                                  const existing = acc.find((s) => s.date === slot.date);
+                                  if (existing) {
+                                    existing.slots.push(slot);
+                                  } else {
+                                    acc.push({ date: slot.date, slots: [slot] });
+                                  }
+                                  return acc;
+                                }, [] as { date: string; slots: DeliverySlot[] }[])
+                                .map((group) => (
+                                  <div key={group.date} className="space-y-2">
+                                    <h5 className="text-sm font-medium text-gray-700">
+                                      {formatDate(group.date)}
+                                    </h5>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {group.slots.map((slot, idx) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => handleSelectSlot(item.product._id, slot)}
+                                          className="p-2 text-xs border rounded hover:border-green-500 hover:bg-green-50 transition-colors text-left"
+                                        >
+                                          <div className="flex items-center gap-1">
+                                            <Clock className="h-3 w-3" />
+                                            <span>
+                                              {formatTime(slot.timeSlot.start)} -{' '}
+                                              {formatTime(slot.timeSlot.end)}
+                                            </span>
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       )}
                     </div>
                   </div>

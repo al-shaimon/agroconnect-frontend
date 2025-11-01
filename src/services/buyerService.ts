@@ -1,5 +1,12 @@
 import api from './api';
-import type { Product, Order, CreateOrderData, BuyerStats, ApiResponse } from '../types';
+import type {
+  Product,
+  FarmerProduct,
+  Order,
+  CreateOrderData,
+  BuyerStats,
+  ApiResponse,
+} from '../types';
 
 export const buyerService = {
   // Browse all products
@@ -16,9 +23,28 @@ export const buyerService = {
     return response.data;
   },
 
-  // Get product details
-  getProduct: async (id: string): Promise<ApiResponse<Product>> => {
-    const response = await api.get<ApiResponse<Product>>(`/buyer/products/${id}`);
+  // Get product details with all farmer offerings
+  getProduct: async (
+    id: string
+  ): Promise<
+    ApiResponse<{
+      product: Product;
+      farmers: FarmerProduct[];
+      stats: {
+        totalFarmers: number;
+        minPrice: number | null;
+        maxPrice: number | null;
+        avgPrice: number | null;
+      };
+    }>
+  > => {
+    const response = await api.get(`/buyer/products/${id}`);
+    return response.data;
+  },
+
+  // Get specific farmer product details
+  getFarmerProduct: async (id: string): Promise<ApiResponse<FarmerProduct>> => {
+    const response = await api.get<ApiResponse<FarmerProduct>>(`/buyer/farmer-products/${id}`);
     return response.data;
   },
 

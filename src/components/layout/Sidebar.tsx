@@ -4,6 +4,7 @@ import { COLORS } from '../../constants/theme';
 import {
   LayoutDashboard,
   Package,
+  Package2,
   ShoppingBag,
   Users,
   Bell,
@@ -43,6 +44,7 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     { to: '/admin/panel', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/verifications', icon: FileCheck, label: 'Verifications' },
     { to: '/admin/users', icon: Users, label: 'Users' },
+    { to: '/admin/products', icon: Package2, label: 'Products' },
     { to: '/admin/orders', icon: ClipboardList, label: 'Orders' },
     { to: '/admin/broadcast', icon: Bell, label: 'Broadcast' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },

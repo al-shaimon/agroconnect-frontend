@@ -137,7 +137,6 @@ export const AdminOrders = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Order Management</h1>
-          <p className="text-gray-600 mt-1">Monitor all platform orders</p>
         </div>
         <div className="flex items-center gap-2">
           <ShoppingCart className="h-8 w-8" style={{ color: COLORS.primary }} />

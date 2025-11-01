@@ -249,7 +249,7 @@ export const FarmerOrders = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {orders.map((order) => {
             const buyer = typeof order.buyerId === 'object' ? order.buyerId : null;
             const nextStatus = getNextStatus(order.status);

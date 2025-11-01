@@ -29,6 +29,7 @@ import {
   AdminUsers,
   AdminOrders,
   AdminBroadcast,
+  AdminGlobalProducts,
 } from './pages/admin';
 
 function App() {
@@ -201,6 +202,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <AdminBroadcast />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminGlobalProducts />
                   </ProtectedRoute>
                 }
               />
