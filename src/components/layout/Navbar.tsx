@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui/button';
 import { COLORS } from '../../constants/theme';
-import { Menu, ShoppingCart, Bell, LogOut, User, Sprout } from 'lucide-react';
+import { Menu, ShoppingCart, Bell, LogOut, User, Sprout, ChevronDown } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore';
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Badge } from '../ui/badge';
+
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -58,6 +59,47 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
               <span className="text-xl font-bold" style={{ color: COLORS.primary }}>
                 AgroConnect
               </span>
+            </Link>
+          </div>
+
+          {/* Center nav links (visible on large screens) */}
+          <div className="hidden lg:flex lg:items-center lg:gap-6">
+            <Link to="/" className="text-sm font-medium text-gray-700 hover:text-black">
+              Home
+            </Link>
+            <Link to="/about" className="text-sm font-medium text-gray-700 hover:text-black">
+              About Us
+            </Link>
+
+            {/* Solutions Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="text-sm font-medium text-gray-700 hover:text-black flex items-center gap-1">
+                  Solutions
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link to="/solutions/farmers" className="cursor-pointer">
+                    For Farmers
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/solutions/consumers" className="cursor-pointer">
+                    For Consumers
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/solutions/supply-chain" className="cursor-pointer">
+                    Supply Chain
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Link to="/blog" className="text-sm font-medium text-gray-700 hover:text-black">
+              Blog
             </Link>
           </div>
 
