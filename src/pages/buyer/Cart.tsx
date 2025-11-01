@@ -412,8 +412,7 @@ export const Cart = () => {
                         <div className="flex-1">
                           <h4 className="font-semibold">{item.product.name}</h4>
                           <p className="text-sm text-gray-600">
-                            ৳{price} × {item.quantity} = ৳
-                            {(price * item.quantity).toFixed(2)}
+                            ৳{price} × {item.quantity} = ৳{(price * item.quantity).toFixed(2)}
                           </p>
                           {item.selectedSlot && (
                             <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">

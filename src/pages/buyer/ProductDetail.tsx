@@ -16,14 +16,7 @@ import {
   SelectValue,
 } from '../../components/ui/select';
 import { COLORS } from '../../constants/theme';
-import {
-  ShoppingCart,
-  MapPin,
-  Star,
-  ArrowLeft,
-  Package,
-  AlertCircle,
-} from 'lucide-react';
+import { ShoppingCart, MapPin, Star, ArrowLeft, Package, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import type { Product, FarmerProduct } from '../../types';
 import { toast } from 'react-toastify';
