@@ -3,17 +3,17 @@ import { socketService } from '../services/socketService';
 import { useAuth } from './useAuth';
 
 export const useSocket = () => {
-  const { token, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && token) {
-      socketService.connect(token);
+    if (isAuthenticated && user?._id) {
+      socketService.connect(user._id);
     }
 
     return () => {
       socketService.disconnect();
     };
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, user?._id]);
 
   const on = useCallback((event: string, callback: (...args: unknown[]) => void) => {
     socketService.on(event, callback);
@@ -27,5 +27,5 @@ export const useSocket = () => {
     socketService.emit(event, data);
   }, []);
 
-  return { on, off, emit };
+  return { on, off, emit, isConnected: socketService.isConnected() };
 };

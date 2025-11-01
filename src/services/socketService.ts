@@ -4,20 +4,26 @@ import { SOCKET_URL } from '../constants/theme';
 class SocketService {
   private socket: Socket | null = null;
 
-  connect(token: string) {
+  connect(userId: string) {
     if (!this.socket) {
       this.socket = io(SOCKET_URL, {
-        auth: {
-          token,
-        },
+        transports: ['websocket', 'polling'],
       });
 
       this.socket.on('connect', () => {
-        console.log('Socket connected');
+        console.log('✅ Socket connected');
+        // Join the user's room
+        if (this.socket) {
+          this.socket.emit('join', userId);
+        }
       });
 
       this.socket.on('disconnect', () => {
-        console.log('Socket disconnected');
+        console.log('❌ Socket disconnected');
+      });
+
+      this.socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
       });
     }
   }
@@ -45,6 +51,10 @@ class SocketService {
     if (this.socket) {
       this.socket.emit(event, data);
     }
+  }
+
+  isConnected(): boolean {
+    return this.socket !== null && this.socket.connected;
   }
 }
 
