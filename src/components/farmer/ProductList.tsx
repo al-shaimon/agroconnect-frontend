@@ -14,14 +14,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Image as ImageIcon,
+  AlertCircle,
 } from 'lucide-react';
 import { COLORS, PRODUCT_CATEGORIES } from '../../constants/theme';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import type { Product } from '../../types';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { ProductForm } from './ProductForm';
+import { Alert, AlertDescription } from '../ui/alert';
+import { useAuth } from '../../hooks/useAuth';
 
 export const ProductList = () => {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +36,8 @@ export const ProductList = () => {
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'category'>('date');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const isVerified = user?.verificationStatus === 'approved';
 
   const fetchProducts = async () => {
     try {
@@ -127,11 +133,23 @@ export const ProductList = () => {
               <Button
                 onClick={() => setIsDialogOpen(true)}
                 style={{ backgroundColor: COLORS.primary }}
+                disabled={!isVerified}
               >
                 <Package className="mr-2 h-4 w-4" />
                 Add Product
               </Button>
             </div>
+
+            {/* Verification Alert */}
+            {!isVerified && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  You must be verified by admin before you can add or update products. Please upload
+                  your verification documents in the Profile section and wait for admin approval.
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Search and Filters */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -238,13 +256,19 @@ export const ProductList = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleEdit(product)}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(product)}
+                              disabled={!isVerified}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleDelete(product._id)}
+                              disabled={!isVerified}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
@@ -318,6 +342,7 @@ export const ProductList = () => {
                           size="sm"
                           className="flex-1"
                           onClick={() => handleEdit(product)}
+                          disabled={!isVerified}
                         >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
@@ -327,6 +352,7 @@ export const ProductList = () => {
                           size="sm"
                           className="flex-1"
                           onClick={() => handleDelete(product._id)}
+                          disabled={!isVerified}
                         >
                           <Trash2 className="h-4 w-4 mr-2 text-red-500" />
                           Delete

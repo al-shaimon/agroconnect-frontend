@@ -15,6 +15,7 @@ export interface User {
   phone: string;
   role: 'farmer' | 'buyer' | 'admin';
   location?: Location;
+  profileImage?: string;
   isVerified: boolean;
   verificationStatus: 'pending' | 'approved' | 'rejected';
   verificationDocuments?: Array<{

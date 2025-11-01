@@ -20,6 +20,8 @@ import {
   XCircle,
   Eye,
   Trash2,
+  Camera,
+  X,
 } from 'lucide-react';
 import type { User as UserType } from '../types';
 import { Alert, AlertDescription } from '../components/ui/alert';
@@ -36,6 +38,8 @@ export const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -74,12 +78,39 @@ export const Profile = () => {
         email: user.email,
         phone: user.phone,
         location: {
-          area: user.location?.area || '',
-          city: user.location?.city || '',
+          area: user?.location?.area || '',
+          city: user?.location?.city || '',
         },
       });
     }
   }, [user]);
+
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeProfileImage = () => {
+    setProfileImage(null);
+    setProfileImagePreview(null);
+    const fileInput = document.getElementById('profileImageInput') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -110,12 +141,29 @@ export const Profile = () => {
 
     try {
       setLoading(true);
-      const response = await authService.updateProfile(formData);
+
+      let submitData: Partial<UserType> | FormData;
+
+      if (profileImage) {
+        const formDataToSubmit = new FormData();
+        formDataToSubmit.append('name', formData.name);
+        formDataToSubmit.append('phone', formData.phone);
+        formDataToSubmit.append('location[area]', formData.location.area);
+        formDataToSubmit.append('location[city]', formData.location.city);
+        formDataToSubmit.append('profileImage', profileImage);
+        submitData = formDataToSubmit;
+      } else {
+        submitData = formData;
+      }
+
+      const response = await authService.updateProfile(submitData);
 
       if (response.success) {
         setUser(response.data as UserType);
         toast.success('Profile updated successfully');
         setIsEditing(false);
+        setProfileImage(null);
+        setProfileImagePreview(null);
       }
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
@@ -132,11 +180,13 @@ export const Profile = () => {
         email: user.email,
         phone: user.phone,
         location: {
-          area: user.location?.area || '',
-          city: user.location?.city || '',
+          area: user?.location?.area || '',
+          city: user?.location?.city || '',
         },
       });
     }
+    setProfileImage(null);
+    setProfileImagePreview(null);
     setIsEditing(false);
   };
 
@@ -323,6 +373,49 @@ export const Profile = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Profile Picture Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Picture</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <img
+              src={
+                profileImagePreview ||
+                user?.profileImage ||
+                'https://via.placeholder.com/150?text=No+Image'
+              }
+              alt="Profile"
+              className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+            />
+            {isEditing && (
+              <label className="absolute bottom-0 right-0 bg-green-600 rounded-full p-2 cursor-pointer hover:bg-green-700 transition-colors shadow-lg">
+                <Camera className="h-5 w-5 text-white" />
+                <input type="file" onChange={handleProfileImageChange} hidden accept="image/*" />
+              </label>
+            )}
+          </div>
+          {profileImagePreview && isEditing && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={removeProfileImage}
+              className="flex items-center gap-2"
+            >
+              <X className="h-4 w-4" />
+              Remove New Image
+            </Button>
+          )}
+          {isEditing && (
+            <p className="text-sm text-gray-500 text-center">
+              Click the camera icon to change your profile picture. Max size: 5MB
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Personal Information Section */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

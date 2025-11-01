@@ -22,13 +22,15 @@ import {
   SelectValue,
 } from '../../components/ui/select';
 import { COLORS } from '../../constants/theme';
-import { Sprout } from 'lucide-react';
+import { Sprout, Upload, X } from 'lucide-react';
 import type { RegisterFormData } from '../../types';
 
 export const Register = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -39,10 +41,61 @@ export const Register = () => {
 
   const role = watch('role');
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+
+      setProfileImage(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setProfileImage(null);
+    setProfileImagePreview(null);
+    const fileInput = document.getElementById('profileImage') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
+
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      const response = await authService.register(data);
+      // Create FormData if profile image is selected
+      let submitData: RegisterFormData | FormData;
+
+      if (profileImage) {
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('email', data.email);
+        formData.append('password', data.password);
+        formData.append('phone', data.phone);
+        formData.append('role', data.role);
+        formData.append('location[area]', data.location.area);
+        formData.append('location[city]', data.location.city);
+        formData.append('profileImage', profileImage);
+        submitData = formData;
+      } else {
+        submitData = data;
+      }
+
+      const response = await authService.register(submitData);
       if (response.success && response.data) {
         login(response.data as unknown as import('../../types').User, response.data.token);
         toast.success('Registration successful!');
@@ -73,6 +126,47 @@ export const Register = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Profile Image Upload */}
+            <div className="space-y-2">
+              <Label htmlFor="profileImage">Profile Image (Optional)</Label>
+              {profileImagePreview ? (
+                <div className="relative w-32 h-32 mx-auto">
+                  <img
+                    src={profileImagePreview}
+                    alt="Profile preview"
+                    className="w-full h-full object-cover rounded-full border-2 border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex justify-center">
+                  <label
+                    htmlFor="profileImage"
+                    className="cursor-pointer flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-full hover:border-green-500 transition-colors"
+                  >
+                    <Upload className="h-8 w-8 text-gray-400" />
+                    <span className="text-xs text-gray-500 mt-2">Upload Photo</span>
+                  </label>
+                  <input
+                    id="profileImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </div>
+              )}
+              <p className="text-xs text-gray-500 text-center">
+                Max size: 5MB. Formats: JPG, PNG, WebP
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
