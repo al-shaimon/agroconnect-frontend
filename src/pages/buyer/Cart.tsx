@@ -132,7 +132,8 @@ export const Cart = () => {
     const item = items.find((i) => i.product._id === productId);
     if (!item) return;
 
-    if (newQuantity > item.product.availableQuantity) {
+    // Guard if availableQuantity is undefined
+    if (item.product.availableQuantity != null && newQuantity > item.product.availableQuantity) {
       toast.error(`Only ${item.product.availableQuantity} units available`);
       return;
     }
@@ -197,6 +198,9 @@ export const Cart = () => {
           typeof item.product.farmerId === 'object'
             ? item.product.farmerId._id
             : item.product.farmerId;
+
+        // Skip items without a valid farmerId
+        if (!farmerId) return acc;
 
         if (!acc[farmerId]) {
           acc[farmerId] = [];
@@ -394,33 +398,36 @@ export const Cart = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {items.map((item) => (
-                    <div key={item.product._id} className="flex gap-4 p-4 border rounded-lg">
-                      {item.product.imageUrl && (
-                        <img
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
-                          className="w-20 h-20 object-cover rounded"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{item.product.name}</h4>
-                        <p className="text-sm text-gray-600">
-                          ৳{item.product.price} × {item.quantity} = ৳
-                          {(item.product.price * item.quantity).toFixed(2)}
-                        </p>
-                        {item.selectedSlot && (
-                          <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(item.selectedSlot.date)}
-                            <Clock className="h-3 w-3 ml-2" />
-                            {formatTime(item.selectedSlot.timeSlot.start)} -{' '}
-                            {formatTime(item.selectedSlot.timeSlot.end)}
-                          </div>
+                  {items.map((item) => {
+                    const price = item.product.price ?? 0;
+                    return (
+                      <div key={item.product._id} className="flex gap-4 p-4 border rounded-lg">
+                        {item.product.imageUrl && (
+                          <img
+                            src={item.product.imageUrl}
+                            alt={item.product.name}
+                            className="w-20 h-20 object-cover rounded"
+                          />
                         )}
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{item.product.name}</h4>
+                          <p className="text-sm text-gray-600">
+                            ৳{price} × {item.quantity} = ৳
+                            {(price * item.quantity).toFixed(2)}
+                          </p>
+                          {item.selectedSlot && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(item.selectedSlot.date)}
+                              <Clock className="h-3 w-3 ml-2" />
+                              {formatTime(item.selectedSlot.timeSlot.start)} -{' '}
+                              {formatTime(item.selectedSlot.timeSlot.end)}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -585,6 +592,7 @@ export const Cart = () => {
         <div className="md:col-span-2 space-y-4">
           {items.map((item) => {
             const farmer = typeof item.product.farmerId === 'object' ? item.product.farmerId : null;
+            const price = item.product.price ?? 0;
 
             return (
               <Card key={item.product._id}>
@@ -657,10 +665,10 @@ export const Cart = () => {
 
                         <div className="text-right">
                           <p className="text-sm text-gray-600">
-                            ৳{item.product.price} × {item.quantity}
+                            ৳{price} × {item.quantity}
                           </p>
                           <p className="text-lg font-bold" style={{ color: COLORS.primary }}>
-                            ৳{(item.product.price * item.quantity).toFixed(2)}
+                            ৳{(price * item.quantity).toFixed(2)}
                           </p>
                         </div>
                       </div>
