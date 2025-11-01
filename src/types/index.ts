@@ -49,7 +49,19 @@ export interface AuthResponse {
 // Product Types
 export interface Product {
   _id: string;
-  farmerId:
+  name: string;
+  category: string;
+  description: string;
+  unit: string;
+  images?: string[];
+  isActive?: boolean;
+  // For global products in marketplace
+  minPrice?: number;
+  maxPrice?: number;
+  farmersCount?: number;
+  available?: boolean;
+  // Legacy fields for backward compatibility
+  farmerId?:
     | string
     | {
         _id: string;
@@ -57,18 +69,37 @@ export interface Product {
         phone: string;
         email: string;
         location?: Location;
+        rating?: number;
+        totalReviews?: number;
       };
-  name: string;
-  category: string;
-  description: string;
-  price: number;
-  unit: string;
-  availableQuantity: number;
+  price?: number;
+  availableQuantity?: number;
   imageUrl?: string;
+  quality?: 'Premium' | 'Standard' | 'Organic';
+  harvestDate?: string;
+  isAvailable?: boolean;
+  location?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface FarmerProduct {
+  _id: string;
+  globalProductId: Product;
+  farmerId: {
+    _id: string;
+    name: string;
+    email: string;
+    phone: string;
+    location?: Location;
+    rating?: number;
+    totalReviews?: number;
+  };
+  price: number;
+  availableQuantity: number;
   quality: 'Premium' | 'Standard' | 'Organic';
   harvestDate?: string;
   isAvailable: boolean;
-  location?: string;
   createdAt: string;
   updatedAt: string;
 }

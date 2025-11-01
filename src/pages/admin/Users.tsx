@@ -163,7 +163,6 @@ export const AdminUsers = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-gray-600 mt-1">Manage all platform users</p>
         </div>
         <div className="flex items-center gap-2">
           <UsersIcon className="h-8 w-8" style={{ color: COLORS.primary }} />

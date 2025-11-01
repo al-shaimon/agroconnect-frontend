@@ -65,20 +65,23 @@ export const BuyerOrders = () => {
       if (response.success && response.data) {
         setOrders(response.data);
 
-        // Check which orders have been reviewed
+        // Check which delivered orders have been reviewed
+        const deliveredOrders = response.data.filter((order) => order.status === 'delivered');
         const reviewed = new Set<string>();
-        for (const order of response.data) {
-          if (order.status === 'delivered') {
-            try {
-              const reviewCheck = await reviewService.canReviewOrder(order._id);
-              if (!reviewCheck.data?.canReview && reviewCheck.data?.review) {
-                reviewed.add(order._id);
-              }
-            } catch (error) {
-              console.error('Error checking review for order:', order._id, error);
+
+        // Check review status for all delivered orders in parallel
+        const reviewChecks = deliveredOrders.map(async (order) => {
+          try {
+            const reviewResponse = await reviewService.canReviewOrder(order._id);
+            if (!reviewResponse.data?.canReview && reviewResponse.data?.review) {
+              reviewed.add(order._id);
             }
+          } catch (error) {
+            console.error('Error checking review for order:', order._id, error);
           }
-        }
+        });
+
+        await Promise.all(reviewChecks);
         setReviewedOrders(reviewed);
       }
     } catch (error) {
@@ -113,6 +116,10 @@ export const BuyerOrders = () => {
         });
         setComment('');
       } else {
+        // If already reviewed, add to reviewed set
+        if (!response.data?.canReview && response.data?.review) {
+          setReviewedOrders((prev) => new Set([...prev, order._id]));
+        }
         toast.info(response.data?.reason || 'Cannot review this order');
       }
     } catch (error) {
@@ -153,6 +160,8 @@ export const BuyerOrders = () => {
       if (response.success) {
         toast.success('Review submitted successfully! The farmer can now review you back.');
         setReviewDialogOpen(false);
+        // Add to reviewed orders immediately
+        setReviewedOrders((prev) => new Set([...prev, selectedOrder._id]));
         setSelectedOrder(null);
         // Refresh orders to update UI
         fetchOrders();
@@ -280,7 +289,7 @@ export const BuyerOrders = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredOrders.map((order) => {
                 const farmer = typeof order.farmerId === 'object' ? order.farmerId : null;
 
@@ -347,13 +356,6 @@ export const BuyerOrders = () => {
 
                         {/* Actions */}
                         <div className="flex gap-2 pt-4">
-                          <Button
-                            variant="outline"
-                            onClick={() => navigate(`/buyer/orders/${order._id}`)}
-                            className="flex-1"
-                          >
-                            View Details
-                          </Button>
                           {order.status === 'delivered' && (
                             <>
                               {reviewedOrders.has(order._id) ? (

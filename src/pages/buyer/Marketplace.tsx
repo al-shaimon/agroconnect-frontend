@@ -19,7 +19,6 @@ import { COLORS, PRODUCT_CATEGORIES } from '../../constants/theme';
 import {
   Search,
   ShoppingCart,
-  MapPin,
   Filter,
   X,
   ChevronLeft,
@@ -33,7 +32,6 @@ import { toast } from 'react-toastify';
 export const Marketplace = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const addItem = useCartStore((state) => state.addItem);
   const cartItemCount = useCartStore((state) => state.getTotalItems());
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -60,8 +58,10 @@ export const Marketplace = () => {
       console.log('Products response:', response);
       if (response.success && response.data) {
         console.log('Setting products:', response.data.length);
-        setProducts(response.data);
-        setFilteredProducts(response.data);
+        // Only show products that have at least one farmer offering
+        const availableProducts = response.data.filter((p) => p.farmersCount && p.farmersCount > 0);
+        setProducts(availableProducts);
+        setFilteredProducts(availableProducts);
       } else {
         console.error('Invalid response:', response);
         toast.error('Failed to load products');
@@ -103,29 +103,28 @@ export const Marketplace = () => {
       result = result.filter((product) => product.quality === selectedQuality);
     }
 
-    // Filter by price range
+    // Filter by price range (using minPrice and maxPrice from global products)
     if (priceRange.min) {
-      result = result.filter((product) => product.price >= parseFloat(priceRange.min));
+      const minPrice = parseFloat(priceRange.min);
+      result = result.filter((product) => product.minPrice && product.minPrice >= minPrice);
     }
     if (priceRange.max) {
-      result = result.filter((product) => product.price <= parseFloat(priceRange.max));
+      const maxPrice = parseFloat(priceRange.max);
+      result = result.filter((product) => product.maxPrice && product.maxPrice <= maxPrice);
     }
-
-    // Filter only available products
-    result = result.filter((product) => product.isAvailable && product.availableQuantity > 0);
 
     // Sort products
     result.sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
-          return a.price - b.price;
+          return (a.minPrice || 0) - (b.minPrice || 0);
         case 'price-high':
-          return b.price - a.price;
+          return (b.maxPrice || 0) - (a.maxPrice || 0);
         case 'name':
           return a.name.localeCompare(b.name);
         case 'date':
         default:
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
       }
     });
 
@@ -133,16 +132,6 @@ export const Marketplace = () => {
     setFilteredProducts(result);
     setCurrentPage(1);
   }, [products, searchTerm, selectedCategory, selectedQuality, sortBy, priceRange]);
-
-  const handleAddToCart = (product: Product) => {
-    if (!isVerified) {
-      toast.error('Please complete verification to purchase products');
-      navigate('/profile');
-      return;
-    }
-    addItem(product, 1);
-    toast.success('Added to cart!');
-  };
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -388,24 +377,22 @@ export const Marketplace = () => {
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {currentProducts.map((product) => {
-              const farmer = typeof product.farmerId === 'object' ? product.farmerId : null;
-
               return (
                 <Card
                   key={product._id}
                   className="hover:shadow-lg transition-all duration-300 flex flex-col"
                 >
                   {/* Product Image */}
-                  {product.imageUrl && (
+                  {product.images && product.images.length > 0 && (
                     <div className="relative h-48 overflow-hidden rounded-t-lg">
                       <img
-                        src={product.imageUrl}
+                        src={product.images[0]}
                         alt={product.name}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />
-                      {!product.isAvailable && (
+                      {!product.available && (
                         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                          <span className="text-white font-bold">Out of Stock</span>
+                          <span className="text-white font-bold">No Farmers Available</span>
                         </div>
                       )}
                     </div>
@@ -419,9 +406,11 @@ export const Marketplace = () => {
                       <Badge style={{ backgroundColor: COLORS.primary }} className="text-xs">
                         {product.category}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {product.quality}
-                      </Badge>
+                      {product.farmersCount && product.farmersCount > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          {product.farmersCount} {product.farmersCount === 1 ? 'Farmer' : 'Farmers'}
+                        </Badge>
+                      )}
                     </div>
                   </CardHeader>
 
@@ -429,66 +418,33 @@ export const Marketplace = () => {
                     <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
 
                     <div className="space-y-2">
+                      {/* Price Range */}
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600 text-sm">Price:</span>
                         <span className="text-xl font-bold" style={{ color: COLORS.primary }}>
-                          ৳{product.price}/{product.unit}
+                          {product.minPrice === product.maxPrice
+                            ? `৳${product.minPrice}`
+                            : `৳${product.minPrice} - ৳${product.maxPrice}`}
+                          {product.unit && `/${product.unit}`}
                         </span>
                       </div>
 
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">Stock:</span>
-                        <span
-                          className={
-                            product.availableQuantity < 10 ? 'text-orange-600 font-semibold' : ''
-                          }
-                        >
-                          {product.availableQuantity} {product.unit}
+                        <span className="text-gray-600">Available from:</span>
+                        <span className="font-medium">
+                          {product.farmersCount} {product.farmersCount === 1 ? 'farmer' : 'farmers'}
                         </span>
                       </div>
-
-                      {product.harvestDate && (
-                        <div className="flex justify-between items-center text-xs text-gray-500">
-                          <span>Harvested:</span>
-                          <span>{new Date(product.harvestDate).toLocaleDateString()}</span>
-                        </div>
-                      )}
-
-                      {farmer && (
-                        <div className="pt-2 border-t">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600">Farmer:</span>
-                            <span className="font-medium">{farmer.name}</span>
-                          </div>
-                          {farmer.location && (
-                            <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                              <MapPin className="h-3 w-3" />
-                              <span>
-                                {farmer.location.area}, {farmer.location.city}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex gap-2 pt-2">
                       <Button
                         className="flex-1"
-                        onClick={() => handleAddToCart(product)}
-                        style={{ backgroundColor: COLORS.primary }}
-                        disabled={
-                          !product.isAvailable || product.availableQuantity === 0 || !isVerified
-                        }
-                      >
-                        <ShoppingCart className="mr-2 h-4 w-4" />
-                        {!isVerified ? 'Verify First' : 'Add to Cart'}
-                      </Button>
-                      <Button
-                        variant="outline"
                         onClick={() => navigate(`/buyer/product/${product._id}`)}
+                        style={{ backgroundColor: COLORS.primary }}
+                        disabled={!isVerified}
                       >
-                        View
+                        {!isVerified ? 'Verify First' : 'View Offers'}
                       </Button>
                     </div>
                   </CardContent>

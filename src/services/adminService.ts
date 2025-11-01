@@ -65,4 +65,48 @@ export const adminService = {
     const response = await api.post<ApiResponse>('/admin/broadcast', data);
     return response.data;
   },
+
+  // Global Products Management
+  getGlobalProducts: async (params?: {
+    category?: string;
+    search?: string;
+    isActive?: boolean;
+  }): Promise<ApiResponse<any[]>> => {
+    const response = await api.get<ApiResponse<any[]>>('/products/admin/global-products', {
+      params,
+    });
+    return response.data;
+  },
+
+  getGlobalProduct: async (id: string): Promise<ApiResponse<any>> => {
+    const response = await api.get<ApiResponse<any>>(`/products/admin/global-products/${id}`);
+    return response.data;
+  },
+
+  createGlobalProduct: async (data: FormData): Promise<ApiResponse<any>> => {
+    const response = await api.post<ApiResponse<any>>('/products/admin/global-products', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  updateGlobalProduct: async (id: string, data: FormData): Promise<ApiResponse<any>> => {
+    const response = await api.put<ApiResponse<any>>(
+      `/products/admin/global-products/${id}`,
+      data,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
+
+  deleteGlobalProduct: async (id: string): Promise<ApiResponse> => {
+    const response = await api.delete<ApiResponse>(`/products/admin/global-products/${id}`);
+    return response.data;
+  },
 };

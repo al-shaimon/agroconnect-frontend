@@ -59,9 +59,6 @@ export const AdminBroadcast = () => {
           <Bell className="h-10 w-10" style={{ color: COLORS.primary }} />
           <h1 className="text-3xl font-bold">Broadcast Notification</h1>
         </div>
-        <p className="text-gray-600">
-          Send important announcements to all users or specific user groups
-        </p>
       </div>
 
       {/* Recipient Selection */}
