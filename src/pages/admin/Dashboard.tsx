@@ -30,7 +30,8 @@ export const AdminDashboard = () => {
     try {
       setLoading(true);
       const response = await adminService.getStats();
-      setStats(response.data);
+      // ApiResponse.data is optional (may be undefined). Ensure we pass AdminStats | null to state.
+      setStats(response.data ?? null);
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
       toast.error(err.response?.data?.message || 'Failed to fetch stats');
