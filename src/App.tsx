@@ -21,10 +21,15 @@ import { Register } from './pages/auth/Register';
 import { FarmerDashboard } from './pages/farmer/Dashboard';
 import { ManageProducts } from './pages/farmer/ManageProducts';
 import { FarmerOrders } from './pages/farmer/Orders';
-import { Marketplace, ProductDetail, BuyerDashboard, BuyerOrders } from './pages/buyer';
+import { Marketplace, ProductDetail, BuyerDashboard, BuyerOrders, Cart } from './pages/buyer';
 import { Profile } from './pages/Profile';
-import { AdminDashboard } from './pages/admin/Dashboard';
-import { AdminVerifications } from './pages/admin/Verifications';
+import {
+  AdminDashboard,
+  AdminVerifications,
+  AdminUsers,
+  AdminOrders,
+  AdminBroadcast,
+} from './pages/admin';
 
 function App() {
   const { initialize, isAuthenticated, isLoading } = useAuth();
@@ -142,6 +147,14 @@ function App() {
                 }
               />
               <Route
+                path="/buyer/cart"
+                element={
+                  <ProtectedRoute allowedRoles={['buyer']}>
+                    <Cart />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/buyer/orders"
                 element={
                   <ProtectedRoute allowedRoles={['buyer']}>
@@ -160,10 +173,34 @@ function App() {
                 }
               />
               <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminUsers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/admin/verifications"
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <AdminVerifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminOrders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/broadcast"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminBroadcast />
                   </ProtectedRoute>
                 }
               />

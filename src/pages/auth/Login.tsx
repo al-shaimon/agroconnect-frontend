@@ -39,7 +39,7 @@ export const Login = () => {
         // Redirect based on role
         const role = response.data.role;
         if (role === 'farmer') navigate('/farmer/dashboard');
-        else if (role === 'buyer') navigate('/buyer/marketplace');
+        else if (role === 'buyer') navigate('/buyer/dashboard');
         else if (role === 'admin') navigate('/admin/panel');
         else navigate('/');
       }

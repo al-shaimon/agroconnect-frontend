@@ -54,7 +54,7 @@ export const ProductDetail = () => {
     }
   };
 
-  // Generate available delivery slots (10AM-11PM, 2-hour intervals, next 5 days)
+  // Generate available delivery slots (10AM-11PM, 2-hour intervals, next 2 days, excluding expired slots)
   const generateDeliverySlots = (): DeliverySlot[] => {
     const slots: DeliverySlot[] = [];
     const timeSlots: TimeSlot[] = [
@@ -67,13 +67,32 @@ export const ProductDetail = () => {
       { start: '22:00', end: '23:00' },
     ];
 
-    const today = new Date();
-    for (let i = 0; i < 5; i++) {
-      const date = new Date(today);
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+
+    // Only show next 2 days
+    for (let i = 0; i < 2; i++) {
+      const date = new Date(now);
       date.setDate(date.getDate() + i);
       const dateStr = date.toISOString().split('T')[0];
+      const isToday = i === 0;
 
       timeSlots.forEach((timeSlot) => {
+        // If it's today, only show slots that haven't started yet
+        if (isToday) {
+          const slotStartHour = parseInt(timeSlot.start.split(':')[0]);
+          const slotStartMinutes = parseInt(timeSlot.start.split(':')[1]);
+
+          // Skip if slot has already started
+          if (
+            slotStartHour < currentHour ||
+            (slotStartHour === currentHour && slotStartMinutes <= currentMinutes)
+          ) {
+            return;
+          }
+        }
+
         slots.push({ date: dateStr, timeSlot });
       });
     }

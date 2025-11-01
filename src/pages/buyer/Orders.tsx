@@ -28,6 +28,7 @@ export const BuyerOrders = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
   // Rating state
@@ -63,6 +64,22 @@ export const BuyerOrders = () => {
       const response = await buyerService.getOrders();
       if (response.success && response.data) {
         setOrders(response.data);
+
+        // Check which orders have been reviewed
+        const reviewed = new Set<string>();
+        for (const order of response.data) {
+          if (order.status === 'delivered') {
+            try {
+              const reviewCheck = await reviewService.canReviewOrder(order._id);
+              if (!reviewCheck.data?.canReview && reviewCheck.data?.review) {
+                reviewed.add(order._id);
+              }
+            } catch (error) {
+              console.error('Error checking review for order:', order._id, error);
+            }
+          }
+        }
+        setReviewedOrders(reviewed);
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error);
@@ -74,11 +91,16 @@ export const BuyerOrders = () => {
 
   const openReviewDialog = async (order: Order) => {
     const farmer = typeof order.farmerId === 'object' ? order.farmerId : null;
-    if (!farmer) return;
+    if (!farmer) {
+      toast.error('Farmer information not available');
+      return;
+    }
 
     // Check if can review
     try {
       const response = await reviewService.canReviewOrder(order._id);
+      console.log('Can review response:', response);
+
       if (response.success && response.data?.canReview) {
         setSelectedOrder(order);
         setReviewDialogOpen(true);
@@ -95,6 +117,7 @@ export const BuyerOrders = () => {
       }
     } catch (error) {
       console.error('Error checking review status:', error);
+      toast.error('Failed to check review status');
     }
   };
 
@@ -102,12 +125,15 @@ export const BuyerOrders = () => {
     if (!selectedOrder) return;
 
     const farmer = typeof selectedOrder.farmerId === 'object' ? selectedOrder.farmerId : null;
-    if (!farmer) return;
+    if (!farmer) {
+      toast.error('Farmer information not available');
+      return;
+    }
 
     // Validate all ratings are filled
     const allRatingsFilled = Object.values(ratings).every((rating) => rating > 0);
     if (!allRatingsFilled) {
-      toast.error('Please provide all ratings');
+      toast.error('Please provide all ratings (1-5 stars each)');
       return;
     }
 
@@ -120,19 +146,24 @@ export const BuyerOrders = () => {
         comment: comment.trim() || undefined,
       };
 
+      console.log('Submitting review:', reviewData);
       const response = await reviewService.createReview(reviewData);
+      console.log('Review response:', response);
+
       if (response.success) {
-        toast.success('Review submitted successfully!');
+        toast.success('Review submitted successfully! The farmer can now review you back.');
         setReviewDialogOpen(false);
         setSelectedOrder(null);
+        // Refresh orders to update UI
+        fetchOrders();
+      } else {
+        toast.error(response.message || 'Failed to submit review');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting review:', error);
       const errorMessage =
-        error instanceof Error && 'response' in error
-          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-          : 'Failed to submit review';
-      toast.error(errorMessage || 'Failed to submit review');
+        error?.response?.data?.message || error?.message || 'Failed to submit review';
+      toast.error(errorMessage);
     } finally {
       setSubmittingReview(false);
     }
@@ -324,14 +355,27 @@ export const BuyerOrders = () => {
                             View Details
                           </Button>
                           {order.status === 'delivered' && (
-                            <Button
-                              onClick={() => openReviewDialog(order)}
-                              className="flex-1 flex items-center gap-2"
-                              style={{ backgroundColor: COLORS.primary }}
-                            >
-                              <Star className="h-4 w-4" />
-                              Rate Farmer
-                            </Button>
+                            <>
+                              {reviewedOrders.has(order._id) ? (
+                                <Button
+                                  variant="outline"
+                                  className="flex-1 flex items-center gap-2"
+                                  disabled
+                                >
+                                  <CheckCircle className="h-4 w-4" />
+                                  Reviewed
+                                </Button>
+                              ) : (
+                                <Button
+                                  onClick={() => openReviewDialog(order)}
+                                  className="flex-1 flex items-center gap-2"
+                                  style={{ backgroundColor: COLORS.primary }}
+                                >
+                                  <Star className="h-4 w-4" />
+                                  Rate Farmer
+                                </Button>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
@@ -430,9 +474,11 @@ export const BuyerOrders = () => {
               <div className="flex items-center gap-2">
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((star) => {
+                    const ratedValues = Object.values(ratings).filter((r) => r > 0);
                     const avgRating =
-                      Object.values(ratings).reduce((a, b) => a + b, 0) /
-                      Object.values(ratings).filter((r) => r > 0).length;
+                      ratedValues.length > 0
+                        ? ratedValues.reduce((a, b) => a + b, 0) / ratedValues.length
+                        : 0;
                     return (
                       <Star
                         key={star}
@@ -444,10 +490,12 @@ export const BuyerOrders = () => {
                   })}
                 </div>
                 <span className="text-lg font-bold">
-                  {(
-                    Object.values(ratings).reduce((a, b) => a + b, 0) /
-                    Object.values(ratings).filter((r) => r > 0).length
-                  ).toFixed(1) || '0.0'}
+                  {(() => {
+                    const ratedValues = Object.values(ratings).filter((r) => r > 0);
+                    return ratedValues.length > 0
+                      ? (ratedValues.reduce((a, b) => a + b, 0) / ratedValues.length).toFixed(1)
+                      : '0.0';
+                  })()}
                 </span>
               </div>
             </div>
