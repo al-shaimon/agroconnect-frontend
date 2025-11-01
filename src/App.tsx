@@ -11,6 +11,11 @@ import { ProtectedRoute } from './components/shared/ProtectedRoute';
 // Pages
 import Home from './pages/Home';
 import About from './pages/About';
+import Blog from './pages/Blog';
+import BlogDetail from './pages/BlogDetail';
+import ForFarmers from './pages/solutions/ForFarmers';
+import ForConsumers from './pages/solutions/ForConsumers';
+import SupplyChain from './pages/solutions/SupplyChain';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { FarmerDashboard } from './pages/farmer/Dashboard';
@@ -63,6 +68,11 @@ function App() {
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogDetail />} />
+              <Route path="/solutions/farmers" element={<ForFarmers />} />
+              <Route path="/solutions/consumers" element={<ForConsumers />} />
+              <Route path="/solutions/supply-chain" element={<SupplyChain />} />
               <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
               <Route
                 path="/register"
