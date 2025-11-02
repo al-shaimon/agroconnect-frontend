@@ -1,2 +1,2 @@
 export { DriverSignup } from './DriverSignup';
-export { DriverDashboard } from './Dashboard';
+export { DriverDashboard } from './DriverDashboard';

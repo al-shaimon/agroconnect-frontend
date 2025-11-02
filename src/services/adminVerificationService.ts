@@ -49,6 +49,7 @@ export const adminVerificationService = {
       byRole: {
         farmer: { pending: number; approved: number; rejected: number };
         buyer: { pending: number; approved: number; rejected: number };
+        driver: { pending: number; approved: number; rejected: number };
       };
     }>
   > => {

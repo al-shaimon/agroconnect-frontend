@@ -26,6 +26,7 @@ export const AdminVerifications = () => {
     byRole?: {
       farmer: { pending: number; approved: number; rejected: number };
       buyer: { pending: number; approved: number; rejected: number };
+      driver: { pending: number; approved: number; rejected: number };
     };
   } | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -161,6 +162,11 @@ export const AdminVerifications = () => {
   };
 
   const filteredVerifications = verifications.filter((user) => {
+    // Only show users who have submitted verification documents
+    if (!user.verificationDocuments || user.verificationDocuments.length === 0) {
+      return false;
+    }
+
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
     return (
@@ -278,6 +284,7 @@ export const AdminVerifications = () => {
                 <option value="all">All Roles</option>
                 <option value="farmer">Farmer</option>
                 <option value="buyer">Buyer</option>
+                <option value="driver">Driver</option>
               </select>
             </div>
           </div>
@@ -300,82 +307,99 @@ export const AdminVerifications = () => {
               <p>No verification requests found</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {filteredVerifications.map((user) => (
                 <Card key={user._id} className="border">
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg">{user.name}</h3>
-                          <Badge className="bg-blue-100 text-blue-800 capitalize">
-                            {user.role}
-                          </Badge>
-                          {getStatusBadge(user.verificationStatus || 'pending')}
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-lg truncate">{user.name}</h3>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <Badge className="bg-blue-100 text-blue-800 capitalize text-xs">
+                              {user.role}
+                            </Badge>
+                            {getStatusBadge(user.verificationStatus || 'pending')}
+                          </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600">
-                          <p>📧 {user.email}</p>
-                          <p>📱 {user.phone}</p>
-                          <p>📅 Joined: {formatDate(user.createdAt)}</p>
-                        </div>
-                        {user.verificationDocuments && user.verificationDocuments.length > 0 && (
-                          <div className="mt-3">
-                            <p className="text-sm font-medium mb-2">Submitted Documents:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {user.verificationDocuments.map((doc, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg text-sm"
-                                >
-                                  <FileText className="h-4 w-4" />
-                                  <span className="capitalize">
+                      </div>
+
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <p className="truncate">📧 {user.email}</p>
+                        <p>📱 {user.phone}</p>
+                        <p>📅 Joined: {formatDate(user.createdAt)}</p>
+                        {user.role === 'driver' && user.driverType && (
+                          <p className="flex items-center gap-1">
+                            🚗{' '}
+                            <span className="capitalize font-medium text-blue-600">
+                              {user.driverType} Driver
+                            </span>
+                          </p>
+                        )}
+                      </div>
+
+                      {user.verificationDocuments && user.verificationDocuments.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium mb-2">Submitted Documents:</p>
+                          <div className="space-y-2">
+                            {user.verificationDocuments.map((doc, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-start gap-2 px-2 py-1.5 bg-gray-100 rounded-lg text-xs"
+                              >
+                                <FileText className="h-3 w-3 mt-0.5 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium capitalize">
                                     {doc.documentType.replace('_', ' ')}
-                                  </span>
-                                  <span className="text-gray-500">({doc.documentNumber})</span>
-                                  <button
-                                    onClick={() =>
-                                      openDocumentViewer(doc.documentUrl, doc.documentType)
-                                    }
-                                    className="text-blue-600 hover:text-blue-800 ml-2 transition-colors"
-                                    title="View document"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </button>
+                                  </div>
+                                  <div className="text-gray-600 truncate">{doc.documentNumber}</div>
                                 </div>
-                              ))}
-                            </div>
+                                <button
+                                  onClick={() =>
+                                    openDocumentViewer(doc.documentUrl, doc.documentType)
+                                  }
+                                  className="text-blue-600 hover:text-blue-800 transition-colors shrink-0"
+                                  title="View document"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
                           </div>
-                        )}
-                        {user.rejectionReason && (
-                          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-sm font-medium text-red-800">Rejection Reason:</p>
-                            <p className="text-sm text-red-700">{user.rejectionReason}</p>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        {(user.verificationStatus || 'pending') === 'pending' && (
-                          <>
-                            <Button
-                              onClick={() => handleApprove(user._id)}
-                              disabled={processing}
-                              style={{ backgroundColor: COLORS.primary }}
-                              className="text-white"
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approve
-                            </Button>
-                            <Button
-                              onClick={() => openRejectDialog(user)}
-                              disabled={processing}
-                              variant="destructive"
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Reject
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                        </div>
+                      )}
+
+                      {user.rejectionReason && (
+                        <div className="p-2 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-xs font-medium text-red-800">Rejection Reason:</p>
+                          <p className="text-xs text-red-700">{user.rejectionReason}</p>
+                        </div>
+                      )}
+
+                      {(user.verificationStatus || 'pending') === 'pending' && (
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            onClick={() => handleApprove(user._id)}
+                            disabled={processing}
+                            style={{ backgroundColor: COLORS.primary }}
+                            className="text-white flex-1 text-sm"
+                            size="sm"
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Approve
+                          </Button>
+                          <Button
+                            onClick={() => openRejectDialog(user)}
+                            disabled={processing}
+                            variant="destructive"
+                            className="flex-1 text-sm"
+                            size="sm"
+                          >
+                            <XCircle className="h-3 w-3 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

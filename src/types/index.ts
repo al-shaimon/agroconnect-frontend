@@ -13,7 +13,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  role: 'farmer' | 'buyer' | 'admin';
+  role: 'farmer' | 'buyer' | 'admin' | 'driver';
   location?: Location;
   profileImage?: string;
   isVerified: boolean;
@@ -29,6 +29,20 @@ export interface User {
   rejectionReason?: string;
   isActive: boolean;
   createdAt: string;
+  // Driver-specific fields
+  driverType?: 'professional' | 'volunteer';
+  vehicleInfo?: {
+    vehicleType?: 'bike' | 'bicycle' | 'car' | 'van' | 'truck';
+    vehicleModel?: string;
+    vehicleNumber?: string;
+    hasFreezer?: boolean;
+    vehicleImage?: string;
+    vehicleImagePublicId?: string;
+  };
+  isAvailable?: boolean;
+  completedDeliveries?: number;
+  rating?: number;
+  totalRatings?: number;
 }
 
 export interface AuthResponse {

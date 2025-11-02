@@ -224,8 +224,7 @@ export const DriverSignup = () => {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 <strong>Required:</strong> Profile Image{' '}
-                {formData.vehicleType !== 'bicycle' && '+ Driving License'} (NID is optional but
-                recommended)
+                {formData.vehicleType !== 'bicycle' && '+ Driving License'}
               </AlertDescription>
             </Alert>
 
@@ -514,7 +513,7 @@ export const DriverSignup = () => {
 
                 <div className="mt-4">
                   <Label htmlFor="vehicleImage" className="block mb-2">
-                    Vehicle Image (Optional)
+                    Vehicle Image
                   </Label>
                   <div className="mt-2">
                     <input
@@ -578,9 +577,7 @@ export const DriverSignup = () => {
 
                 {/* NID */}
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <Label className="text-base font-semibold">
-                    National ID (NID) - Optional but Recommended
-                  </Label>
+                  <Label className="text-base font-semibold">National ID (NID)</Label>
                   <p className="text-sm text-gray-600 mb-2">
                     Providing NID helps verify your identity faster
                   </p>
@@ -616,7 +613,7 @@ export const DriverSignup = () => {
                     </div>
                     <div>
                       <Label htmlFor="nidBack" className="text-sm">
-                        NID Back Side (Optional)
+                        NID Back Side
                       </Label>
                       <input
                         id="nidBack"

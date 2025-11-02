@@ -31,6 +31,7 @@ export const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -46,17 +47,20 @@ export const Register = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
+        setImageError('Please select an image file');
         toast.error('Please select an image file');
         return;
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
+        setImageError('Image size should be less than 5MB');
         toast.error('Image size should be less than 5MB');
         return;
       }
 
       setProfileImage(file);
+      setImageError(null);
 
       // Create preview
       const reader = new FileReader();
@@ -70,6 +74,7 @@ export const Register = () => {
   const removeImage = () => {
     setProfileImage(null);
     setProfileImagePreview(null);
+    setImageError('Profile image is required');
     const fileInput = document.getElementById('profileImage') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   };
@@ -77,6 +82,14 @@ export const Register = () => {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
+      // Enforce profile image required
+      if (!profileImage) {
+        setImageError('Profile image is required');
+        toast.error('Profile image is required');
+        setIsLoading(false);
+        return;
+      }
+
       // Create FormData if profile image is selected
       let submitData: RegisterFormData | FormData;
 
@@ -128,7 +141,7 @@ export const Register = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Profile Image Upload */}
             <div className="space-y-2">
-              <Label htmlFor="profileImage">Profile Image (Optional)</Label>
+              <Label htmlFor="profileImage">Profile Image (Required)</Label>
               {profileImagePreview ? (
                 <div className="relative w-32 h-32 mx-auto">
                   <img
@@ -162,6 +175,7 @@ export const Register = () => {
                   />
                 </div>
               )}
+              {imageError && <p className="text-sm text-red-500 text-center">{imageError}</p>}
               <p className="text-xs text-gray-500 text-center">
                 Max size: 5MB. Formats: JPG, PNG, WebP
               </p>
@@ -231,7 +245,7 @@ export const Register = () => {
                 <Label htmlFor="area">Area</Label>
                 <Input
                   id="area"
-                  placeholder="Mirpur"
+                  placeholder="GEC"
                   {...register('location.area', { required: 'Area is required' })}
                 />
                 {errors.location?.area && (
@@ -243,7 +257,7 @@ export const Register = () => {
                 <Label htmlFor="city">City</Label>
                 <Input
                   id="city"
-                  placeholder="Dhaka"
+                  placeholder="Chattogram"
                   {...register('location.city', { required: 'City is required' })}
                 />
                 {errors.location?.city && (
@@ -255,18 +269,26 @@ export const Register = () => {
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || !role}
+              disabled={isLoading || !role || !profileImage}
               style={{ backgroundColor: COLORS.primary }}
             >
               {isLoading ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600">Already have an account? </span>
-            <Link to="/login" style={{ color: COLORS.primary }} className="font-medium">
-              Login
-            </Link>
+          <div className="mt-4 text-center text-sm space-y-2">
+            <div>
+              <span className="text-gray-600">Already have an account? </span>
+              <Link to="/login" style={{ color: COLORS.primary }} className="font-medium">
+                Login
+              </Link>
+            </div>
+            <div className="pt-2 border-t">
+              <span className="text-gray-600">Want to join as a driver? </span>
+              <Link to="/register-driver" style={{ color: COLORS.primary }} className="font-medium">
+                Register as Driver
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>

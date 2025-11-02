@@ -37,6 +37,7 @@ import {
   AdminBroadcast,
   AdminGlobalProducts,
 } from './pages/admin';
+import { DriverSignup, DriverDashboard } from './pages/driver';
 
 function App() {
   const { initialize, isAuthenticated, isLoading } = useAuth();
@@ -247,6 +248,16 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <AdminGlobalProducts />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Driver Routes */}
+              <Route
+                path="/driver/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['driver']}>
+                    <DriverDashboard />
                   </ProtectedRoute>
                 }
               />
