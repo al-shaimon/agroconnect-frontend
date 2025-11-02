@@ -17,7 +17,7 @@ import {
 import { Textarea } from '../../components/ui/textarea';
 import { Label } from '../../components/ui/label';
 import { COLORS } from '../../constants/theme';
-import { Package, Clock, CheckCircle, Truck, XCircle, Star } from 'lucide-react';
+import { Package, Clock, CheckCircle, Truck, XCircle, Star, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'react-toastify';
 
@@ -168,10 +168,23 @@ export const BuyerOrders = () => {
       } else {
         toast.error(response.message || 'Failed to submit review');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting review:', error);
-      const errorMessage =
-        error?.response?.data?.message || error?.message || 'Failed to submit review';
+      let errorMessage = 'Failed to submit review';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        // Narrow error to expected shape without using `any`
+        const err = error as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
+        errorMessage = err.response?.data?.message || err.message || errorMessage;
+      }
+
       toast.error(errorMessage);
     } finally {
       setSubmittingReview(false);
@@ -208,7 +221,7 @@ export const BuyerOrders = () => {
       case 'pending':
         return <Clock className="h-5 w-5 text-yellow-600" />;
       case 'confirmed':
-        return <CheckCircle className="h-5 w-5 text-emerald-600" />;
+        return <RefreshCw className="h-5 w-5 text-emerald-600 animate-spin" />;
       case 'in-transit':
         return <Truck className="h-5 w-5 text-blue-600" />;
       case 'delivered':
@@ -235,6 +248,11 @@ export const BuyerOrders = () => {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    // Status labels are now straightforward as we updated the schema
+    return status.toUpperCase().replace(/-/g, ' ');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -258,8 +276,8 @@ export const BuyerOrders = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all">All Orders ({orders.length})</TabsTrigger>
-          <TabsTrigger value="pending">
-            Pending ({orders.filter((o) => o.status === 'pending').length})
+          <TabsTrigger value="processing">
+            Processing ({orders.filter((o) => o.status === 'processing').length})
           </TabsTrigger>
           <TabsTrigger value="confirmed">
             Confirmed ({orders.filter((o) => o.status === 'confirmed').length})
@@ -309,7 +327,7 @@ export const BuyerOrders = () => {
                           </div>
                         </div>
                         <Badge className={getStatusColor(order.status)}>
-                          {order.status.toUpperCase()}
+                          {getStatusLabel(order.status)}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -353,6 +371,33 @@ export const BuyerOrders = () => {
                             ))}
                           </div>
                         </div>
+
+                        {/* Payment Status */}
+                        {order.paymentStatus && (
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            <p className="text-sm font-semibold text-gray-700 mb-1">
+                              Payment Status
+                            </p>
+                            {order.paymentStatus === 'pending' && (
+                              <p className="text-sm text-yellow-600 flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Pending Verification by Farmer
+                              </p>
+                            )}
+                            {order.paymentStatus === 'verified' && (
+                              <p className="text-sm text-green-600 flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4" />
+                                Payment Verified
+                              </p>
+                            )}
+                            {order.paymentStatus === 'rejected' && (
+                              <p className="text-sm text-red-600 flex items-center gap-2">
+                                <XCircle className="h-4 w-4" />
+                                Payment Rejected
+                              </p>
+                            )}
+                          </div>
+                        )}
 
                         {/* Actions */}
                         <div className="flex gap-2 pt-4">

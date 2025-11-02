@@ -191,7 +191,12 @@ export interface Order {
       };
   items: OrderItem[];
   totalAmount: number;
-  status: 'pending' | 'confirmed' | 'in-transit' | 'delivered' | 'cancelled';
+  status: 'processing' | 'confirmed' | 'in-transit' | 'delivered' | 'cancelled';
+  paymentStatus?: 'pending' | 'verified' | 'rejected';
+  paymentDetails?: {
+    bkashNumber: string;
+    transactionId: string;
+  };
   deliveryAddress: DeliveryAddress;
   notes?: string;
   orderDate: string;

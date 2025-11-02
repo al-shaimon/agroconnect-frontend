@@ -226,6 +226,10 @@ export const Cart = () => {
             }${deliveryAddress.additionalNotes ? ', ' + deliveryAddress.additionalNotes : ''}`,
           },
           notes: deliveryAddress.additionalNotes,
+          paymentDetails: {
+            bkashNumber: bkashNumber,
+            transactionId: transactionId,
+          },
         };
 
         return buyerService.placeOrder(orderData);
@@ -236,7 +240,7 @@ export const Cart = () => {
       const allSuccess = results.every((result) => result.success);
 
       if (allSuccess) {
-        toast.success('Orders placed successfully! Wait for farmer confirmation.');
+        toast.success('Orders placed successfully! Waiting for payment verification by farmer.');
         clearCart();
         setShowPaymentModal(false);
         setShowCheckout(false);
