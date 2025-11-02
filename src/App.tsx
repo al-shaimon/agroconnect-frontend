@@ -27,6 +27,7 @@ import {
   Cart,
   TermsAndConditions,
 } from './pages/buyer';
+import { DriverSignup, DriverDashboard } from './pages/driver';
 import { Profile } from './pages/Profile';
 import {
   AdminDashboard,
@@ -51,6 +52,7 @@ function App() {
     location.pathname.startsWith('/farmer/') ||
     location.pathname.startsWith('/buyer/') ||
     location.pathname.startsWith('/admin/') ||
+    location.pathname.startsWith('/driver/') ||
     location.pathname === '/profile';
 
   // Show loading screen while initializing
@@ -90,12 +92,16 @@ function App() {
                 path="/register"
                 element={isAuthenticated ? <Navigate to="/" /> : <Register />}
               />
+              <Route
+                path="/register-driver"
+                element={isAuthenticated ? <Navigate to="/" /> : <DriverSignup />}
+              />
 
               {/* Profile Route - All authenticated users */}
               <Route
                 path="/profile"
                 element={
-                  <ProtectedRoute allowedRoles={['farmer', 'buyer', 'admin']}>
+                  <ProtectedRoute allowedRoles={['farmer', 'buyer', 'admin', 'driver']}>
                     <Profile />
                   </ProtectedRoute>
                 }
@@ -181,6 +187,16 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['buyer']}>
                     <TermsAndConditions />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Driver Routes */}
+              <Route
+                path="/driver/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['driver']}>
+                    <DriverDashboard />
                   </ProtectedRoute>
                 }
               />

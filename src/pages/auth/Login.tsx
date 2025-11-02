@@ -41,6 +41,7 @@ export const Login = () => {
         if (role === 'farmer') navigate('/farmer/dashboard');
         else if (role === 'buyer') navigate('/buyer/dashboard');
         else if (role === 'admin') navigate('/admin/panel');
+        else if (role === 'driver') navigate('/driver/dashboard');
         else navigate('/');
       }
     } catch (error: unknown) {

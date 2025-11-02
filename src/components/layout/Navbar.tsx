@@ -28,13 +28,16 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
   };
 
   const getDashboardLink = () => {
-    switch (user?.role) {
+    const role = user?.role as 'farmer' | 'buyer' | 'admin' | 'driver' | undefined;
+    switch (role) {
       case 'farmer':
         return '/farmer/dashboard';
       case 'buyer':
         return '/buyer/dashboard';
       case 'admin':
         return '/admin/panel';
+      case 'driver':
+        return '/driver/dashboard';
       default:
         return '/';
     }
@@ -150,12 +153,22 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                 <Button variant="outline" onClick={() => navigate('/login')}>
                   Login
                 </Button>
-                <Button
-                  onClick={() => navigate('/register')}
-                  style={{ backgroundColor: COLORS.primary }}
-                >
-                  Register
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button style={{ backgroundColor: COLORS.primary }}>
+                      Register
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate('/register')}>
+                      Register as Farmer/Buyer
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/register-driver')}>
+                      Register as Driver
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>

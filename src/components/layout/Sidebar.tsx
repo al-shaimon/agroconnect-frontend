@@ -15,6 +15,8 @@ import {
   UserCircle,
   BookOpen,
   FileText,
+  Truck,
+  MapPin,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -54,14 +56,24 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
+  const driverLinks = [
+    { to: '/driver/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/driver/deliveries', icon: Truck, label: 'My Deliveries' },
+    { to: '/driver/available', icon: MapPin, label: 'Available Orders' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
+  ];
+
   const getLinks = () => {
-    switch (user?.role) {
+    const role = user?.role as 'farmer' | 'buyer' | 'admin' | 'driver' | undefined;
+    switch (role) {
       case 'farmer':
         return farmerLinks;
       case 'buyer':
         return buyerLinks;
       case 'admin':
         return adminLinks;
+      case 'driver':
+        return driverLinks;
       default:
         return [];
     }
