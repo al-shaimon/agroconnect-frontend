@@ -1,28 +1,38 @@
-import { useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useAuth } from './hooks/useAuth';
-import { Navbar } from './components/layout/Navbar';
-import { Sidebar } from './components/layout/Sidebar';
-import { Footer } from './components/layout/Footer';
-import { ProtectedRoute } from './components/shared/ProtectedRoute';
+import { useEffect, useState } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "./hooks/useAuth";
+import { Navbar } from "./components/layout/Navbar";
+import { Sidebar } from "./components/layout/Sidebar";
+import { Footer } from "./components/layout/Footer";
+import { ProtectedRoute } from "./components/shared/ProtectedRoute";
 
 // Pages
-import Home from './pages/Home';
-import About from './pages/About';
-import Blog from './pages/Blog';
-import BlogDetail from './pages/BlogDetail';
-import ForFarmers from './pages/solutions/ForFarmers';
-import ForConsumers from './pages/solutions/ForConsumers';
-import SupplyChain from './pages/solutions/SupplyChain';
-import { Login } from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
-import { FarmerDashboard } from './pages/farmer/Dashboard';
-import { ManageProducts } from './pages/farmer/ManageProducts';
-import { FarmerOrders } from './pages/farmer/Orders';
-import { Marketplace, ProductDetail, BuyerDashboard, BuyerOrders, Cart } from './pages/buyer';
-import { Profile } from './pages/Profile';
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Blog from "./pages/Blog";
+import BlogDetail from "./pages/BlogDetail";
+import ForFarmers from "./pages/solutions/ForFarmers";
+import ForConsumers from "./pages/solutions/ForConsumers";
+import SupplyChain from "./pages/solutions/SupplyChain";
+import { Login } from "./pages/auth/Login";
+import { Register } from "./pages/auth/Register";
+import {
+  FarmerDashboard,
+  ManageProducts,
+  FarmerOrders,
+  FarmerGuidelines,
+} from "./pages/farmer";
+import {
+  Marketplace,
+  ProductDetail,
+  BuyerDashboard,
+  BuyerOrders,
+  Cart,
+  TermsAndConditions,
+} from "./pages/buyer";
+import { Profile } from "./pages/Profile";
 import {
   AdminDashboard,
   AdminVerifications,
@@ -30,7 +40,7 @@ import {
   AdminOrders,
   AdminBroadcast,
   AdminGlobalProducts,
-} from './pages/admin';
+} from "./pages/admin";
 
 function App() {
   const { initialize, isAuthenticated, isLoading } = useAuth();
@@ -43,10 +53,10 @@ function App() {
 
   // Check if current route is a dashboard route
   const isDashboardRoute =
-    location.pathname.startsWith('/farmer/') ||
-    location.pathname.startsWith('/buyer/') ||
-    location.pathname.startsWith('/admin/') ||
-    location.pathname === '/profile';
+    location.pathname.startsWith("/farmer/") ||
+    location.pathname.startsWith("/buyer/") ||
+    location.pathname.startsWith("/admin/") ||
+    location.pathname === "/profile";
 
   // Show loading screen while initializing
   if (isLoading) {
@@ -66,10 +76,17 @@ function App() {
 
       <div className="flex flex-1">
         {isAuthenticated && isDashboardRoute && (
-          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+          />
         )}
 
-        <main className={`flex-1 ${isAuthenticated && isDashboardRoute ? 'lg:ml-64' : ''}`}>
+        <main
+          className={`flex-1 ${
+            isAuthenticated && isDashboardRoute ? "lg:ml-64" : ""
+          }`}
+        >
           <div className="container mx-auto px-4 py-8">
             <Routes>
               {/* Public Routes */}
@@ -80,7 +97,10 @@ function App() {
               <Route path="/solutions/farmers" element={<ForFarmers />} />
               <Route path="/solutions/consumers" element={<ForConsumers />} />
               <Route path="/solutions/supply-chain" element={<SupplyChain />} />
-              <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
+              <Route
+                path="/login"
+                element={isAuthenticated ? <Navigate to="/" /> : <Login />}
+              />
               <Route
                 path="/register"
                 element={isAuthenticated ? <Navigate to="/" /> : <Register />}
@@ -90,7 +110,7 @@ function App() {
               <Route
                 path="/profile"
                 element={
-                  <ProtectedRoute allowedRoles={['farmer', 'buyer', 'admin']}>
+                  <ProtectedRoute allowedRoles={["farmer", "buyer", "admin"]}>
                     <Profile />
                   </ProtectedRoute>
                 }
@@ -100,7 +120,7 @@ function App() {
               <Route
                 path="/farmer/dashboard"
                 element={
-                  <ProtectedRoute allowedRoles={['farmer']}>
+                  <ProtectedRoute allowedRoles={["farmer"]}>
                     <FarmerDashboard />
                   </ProtectedRoute>
                 }
@@ -108,7 +128,7 @@ function App() {
               <Route
                 path="/farmer/products"
                 element={
-                  <ProtectedRoute allowedRoles={['farmer']}>
+                  <ProtectedRoute allowedRoles={["farmer"]}>
                     <ManageProducts />
                   </ProtectedRoute>
                 }
@@ -116,8 +136,16 @@ function App() {
               <Route
                 path="/farmer/orders"
                 element={
-                  <ProtectedRoute allowedRoles={['farmer']}>
+                  <ProtectedRoute allowedRoles={["farmer"]}>
                     <FarmerOrders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/farmer/guidelines"
+                element={
+                  <ProtectedRoute allowedRoles={["farmer"]}>
+                    <FarmerGuidelines />
                   </ProtectedRoute>
                 }
               />
@@ -126,7 +154,7 @@ function App() {
               <Route
                 path="/buyer/dashboard"
                 element={
-                  <ProtectedRoute allowedRoles={['buyer']}>
+                  <ProtectedRoute allowedRoles={["buyer"]}>
                     <BuyerDashboard />
                   </ProtectedRoute>
                 }
@@ -134,7 +162,7 @@ function App() {
               <Route
                 path="/buyer/marketplace"
                 element={
-                  <ProtectedRoute allowedRoles={['buyer']}>
+                  <ProtectedRoute allowedRoles={["buyer"]}>
                     <Marketplace />
                   </ProtectedRoute>
                 }
@@ -142,15 +170,23 @@ function App() {
               <Route
                 path="/buyer/product/:id"
                 element={
-                  <ProtectedRoute allowedRoles={['buyer']}>
+                  <ProtectedRoute allowedRoles={["buyer"]}>
                     <ProductDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/buyer/terms"
+                element={
+                  <ProtectedRoute allowedRoles={["buyer"]}>
+                    <TermsAndConditions />
                   </ProtectedRoute>
                 }
               />
               <Route
                 path="/buyer/cart"
                 element={
-                  <ProtectedRoute allowedRoles={['buyer']}>
+                  <ProtectedRoute allowedRoles={["buyer"]}>
                     <Cart />
                   </ProtectedRoute>
                 }
@@ -158,7 +194,7 @@ function App() {
               <Route
                 path="/buyer/orders"
                 element={
-                  <ProtectedRoute allowedRoles={['buyer']}>
+                  <ProtectedRoute allowedRoles={["buyer"]}>
                     <BuyerOrders />
                   </ProtectedRoute>
                 }
@@ -168,7 +204,7 @@ function App() {
               <Route
                 path="/admin/panel"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminDashboard />
                   </ProtectedRoute>
                 }
@@ -176,7 +212,7 @@ function App() {
               <Route
                 path="/admin/users"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminUsers />
                   </ProtectedRoute>
                 }
@@ -184,7 +220,7 @@ function App() {
               <Route
                 path="/admin/verifications"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminVerifications />
                   </ProtectedRoute>
                 }
@@ -192,7 +228,7 @@ function App() {
               <Route
                 path="/admin/orders"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminOrders />
                   </ProtectedRoute>
                 }
@@ -200,7 +236,7 @@ function App() {
               <Route
                 path="/admin/broadcast"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminBroadcast />
                   </ProtectedRoute>
                 }
@@ -208,7 +244,7 @@ function App() {
               <Route
                 path="/admin/products"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminGlobalProducts />
                   </ProtectedRoute>
                 }
