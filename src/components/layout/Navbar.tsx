@@ -1,17 +1,24 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { Button } from '../ui/button';
-import { COLORS } from '../../constants/theme';
-import { Menu, ShoppingCart, LogOut, User, Sprout, ChevronDown } from 'lucide-react';
-import { useCartStore } from '../../store/cartStore';
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { Button } from "../ui/button";
+import { COLORS } from "../../constants/theme";
+import {
+  Menu,
+  ShoppingCart,
+  LogOut,
+  User,
+  Sprout,
+  ChevronDown,
+} from "lucide-react";
+import { useCartStore } from "../../store/cartStore";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { Badge } from '../ui/badge';
-import { NotificationBell } from '../shared/NotificationBell';
+} from "../ui/dropdown-menu";
+import { Badge } from "../ui/badge";
+import { NotificationBell } from "../shared/NotificationBell";
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -20,25 +27,33 @@ interface NavbarProps {
 export const Navbar = ({ onMenuClick }: NavbarProps) => {
   const { user, isAuthenticated, logout, isBuyer } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const totalItems = useCartStore((state) => state.getTotalItems());
+
+  const isActivePath = (path: string) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname.startsWith(path);
+  };
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const getDashboardLink = () => {
     switch (user?.role) {
-      case 'farmer':
-        return '/farmer/dashboard';
-      case 'buyer':
-        return '/buyer/dashboard';
-      case 'admin':
-        return '/admin/panel';
+      case "farmer":
+        return "/farmer/dashboard";
+      case "buyer":
+        return "/buyer/dashboard";
+      case "admin":
+        return "/admin/panel";
       case 'driver':
         return '/driver/dashboard';
       default:
-        return '/';
+        return "/";
     }
   };
 
@@ -52,13 +67,21 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
           {/* Left side */}
           <div className="flex items-center gap-4">
             {isAuthenticated && (
-              <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onMenuClick}
+                className="lg:hidden"
+              >
                 <Menu className="h-5 w-5" />
               </Button>
             )}
             <Link to="/" className="flex items-center gap-2">
               <Sprout className="h-8 w-8" style={{ color: COLORS.primary }} />
-              <span className="text-xl font-bold" style={{ color: COLORS.primary }}>
+              <span
+                className="text-xl font-bold"
+                style={{ color: COLORS.primary }}
+              >
                 AgroConnect
               </span>
             </Link>
@@ -66,17 +89,52 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
 
           {/* Center nav links (visible on large screens) */}
           <div className="hidden lg:flex lg:items-center lg:gap-6">
-            <Link to="/" className="text-sm font-medium text-gray-700 hover:text-black">
+            <Link
+              to="/"
+              className={`text-sm font-medium transition-colors pb-1 border-b-2 ${
+                isActivePath("/")
+                  ? "text-black border-current"
+                  : "text-gray-700 hover:text-black border-transparent"
+              }`}
+              style={
+                isActivePath("/")
+                  ? { borderColor: COLORS.primary, color: COLORS.primary }
+                  : {}
+              }
+            >
               Home
             </Link>
-            <Link to="/about" className="text-sm font-medium text-gray-700 hover:text-black">
+            <Link
+              to="/about"
+              className={`text-sm font-medium transition-colors pb-1 border-b-2 ${
+                isActivePath("/about")
+                  ? "text-black border-current"
+                  : "text-gray-700 hover:text-black border-transparent"
+              }`}
+              style={
+                isActivePath("/about")
+                  ? { borderColor: COLORS.primary, color: COLORS.primary }
+                  : {}
+              }
+            >
               About Us
             </Link>
 
             {/* Solutions Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="text-sm font-medium text-gray-700 hover:text-black flex items-center gap-1">
+                <button
+                  className={`text-sm font-medium transition-colors pb-1 border-b-2 flex items-center gap-1 ${
+                    isActivePath("/solutions")
+                      ? "text-black border-current"
+                      : "text-gray-700 hover:text-black border-transparent"
+                  }`}
+                  style={
+                    isActivePath("/solutions")
+                      ? { borderColor: COLORS.primary, color: COLORS.primary }
+                      : {}
+                  }
+                >
                   Solutions
                   <ChevronDown className="h-4 w-4" />
                 </button>
@@ -100,7 +158,19 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link to="/blog" className="text-sm font-medium text-gray-700 hover:text-black">
+            <Link
+              to="/blog"
+              className={`text-sm font-medium transition-colors pb-1 border-b-2 ${
+                isActivePath("/blog")
+                  ? "text-black border-current"
+                  : "text-gray-700 hover:text-black border-transparent"
+              }`}
+              style={
+                isActivePath("/blog")
+                  ? { borderColor: COLORS.primary, color: COLORS.primary }
+                  : {}
+              }
+            >
               Blog
             </Link>
           </div>
@@ -114,7 +184,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                     variant="ghost"
                     size="icon"
                     className="relative"
-                    onClick={() => navigate('/buyer/cart')}
+                    onClick={() => navigate("/buyer/cart")}
                   >
                     <ShoppingCart className="h-5 w-5" />
                     {totalItems > 0 && (
@@ -137,7 +207,9 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(getDashboardLink())}>
+                    <DropdownMenuItem
+                      onClick={() => navigate(getDashboardLink())}
+                    >
                       Dashboard
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleLogout}>
@@ -149,7 +221,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
               </>
             ) : (
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => navigate('/login')}>
+                <Button variant="outline" onClick={() => navigate("/login")}>
                   Login
                 </Button>
                 <DropdownMenu>
