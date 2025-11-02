@@ -1,6 +1,6 @@
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { COLORS } from '../../constants/theme';
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { COLORS } from "../../constants/theme";
 import {
   LayoutDashboard,
   Package,
@@ -13,8 +13,10 @@ import {
   Receipt,
   FileCheck,
   UserCircle,
-} from 'lucide-react';
-import { cn } from '../../lib/utils';
+  FileText,
+  BookOpen,
+} from "lucide-react";
+import { cn } from "../../lib/utils";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -26,37 +28,39 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
   const location = useLocation();
 
   const farmerLinks = [
-    { to: '/farmer/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/farmer/products', icon: Package, label: 'My Products' },
-    { to: '/farmer/orders', icon: ClipboardList, label: 'Orders' },
-    { to: '/profile', icon: UserCircle, label: 'Profile' },
+    { to: "/farmer/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/farmer/products", icon: Package, label: "My Products" },
+    { to: "/farmer/orders", icon: ClipboardList, label: "Orders" },
+    { to: "/farmer/guidelines", icon: BookOpen, label: "Guidelines" },
+    { to: "/profile", icon: UserCircle, label: "Profile" },
   ];
 
   const buyerLinks = [
-    { to: '/buyer/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/buyer/marketplace', icon: Store, label: 'Marketplace' },
-    { to: '/buyer/orders', icon: Receipt, label: 'My Orders' },
-    { to: '/buyer/cart', icon: ShoppingBag, label: 'Cart' },
-    { to: '/profile', icon: UserCircle, label: 'Profile' },
+    { to: "/buyer/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/buyer/marketplace", icon: Store, label: "Marketplace" },
+    { to: "/buyer/orders", icon: Receipt, label: "My Orders" },
+    { to: "/buyer/cart", icon: ShoppingBag, label: "Cart" },
+    { to: "/buyer/terms", icon: FileText, label: "Terms & Conditions" },
+    { to: "/profile", icon: UserCircle, label: "Profile" },
   ];
 
   const adminLinks = [
-    { to: '/admin/panel', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/admin/verifications', icon: FileCheck, label: 'Verifications' },
-    { to: '/admin/users', icon: Users, label: 'Users' },
-    { to: '/admin/products', icon: Package2, label: 'Products' },
-    { to: '/admin/orders', icon: ClipboardList, label: 'Orders' },
-    { to: '/admin/broadcast', icon: Bell, label: 'Broadcast' },
-    { to: '/profile', icon: UserCircle, label: 'Profile' },
+    { to: "/admin/panel", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/admin/verifications", icon: FileCheck, label: "Verifications" },
+    { to: "/admin/users", icon: Users, label: "Users" },
+    { to: "/admin/products", icon: Package2, label: "Products" },
+    { to: "/admin/orders", icon: ClipboardList, label: "Orders" },
+    { to: "/admin/broadcast", icon: Bell, label: "Broadcast" },
+    { to: "/profile", icon: UserCircle, label: "Profile" },
   ];
 
   const getLinks = () => {
     switch (user?.role) {
-      case 'farmer':
+      case "farmer":
         return farmerLinks;
-      case 'buyer':
+      case "buyer":
         return buyerLinks;
-      case 'admin':
+      case "admin":
         return adminLinks;
       default:
         return [];
@@ -68,13 +72,18 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
   return (
     <>
       {/* Mobile overlay */}
-      {isOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={onClose}
+        />
+      )}
 
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 bg-white border-r transition-transform lg:translate-x-0',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 bg-white border-r transition-transform lg:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
         style={{ borderRightColor: COLORS.border }}
       >
@@ -89,10 +98,12 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                 to={link.to}
                 onClick={onClose}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  isActive ? 'text-white' : 'text-gray-700 hover:bg-gray-100'
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive ? "text-white" : "text-gray-700 hover:bg-gray-100"
                 )}
-                style={isActive ? { backgroundColor: COLORS.primary } : undefined}
+                style={
+                  isActive ? { backgroundColor: COLORS.primary } : undefined
+                }
               >
                 <Icon className="h-5 w-5" />
                 {link.label}

@@ -1,60 +1,72 @@
-import { Card, CardContent } from '../../components/ui/card';
-import { COLORS } from '../../constants/theme';
-import { ShoppingBag, Leaf, Heart, Shield, Clock, MapPin } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { Card, CardContent } from "../../components/ui/card";
+import { COLORS } from "../../constants/theme";
+import { ShoppingBag, Leaf, Heart, Shield, Clock, MapPin } from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function ForConsumers() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
 
   const handleGetStarted = () => {
-    if (isAuthenticated && user?.role === 'buyer') {
-      navigate('/buyer/marketplace');
+    if (isAuthenticated && user?.role === "buyer") {
+      navigate("/buyer/marketplace");
     } else if (isAuthenticated) {
-      navigate('/');
+      navigate("/");
     } else {
-      navigate('/register');
+      navigate("/register");
+    }
+  };
+
+  const handleCategoryClick = () => {
+    if (isAuthenticated && user?.role === "buyer") {
+      navigate("/buyer/marketplace");
+    } else if (isAuthenticated) {
+      // If logged in but not a buyer, redirect to home
+      navigate("/");
+    } else {
+      // Not logged in, redirect to login
+      navigate("/login");
     }
   };
 
   const benefits = [
     {
       icon: Leaf,
-      title: 'Fresh & Organic',
+      title: "Fresh & Organic",
       description:
-        'Get farm-fresh produce delivered to your doorstep. No chemicals, no preservatives, just natural goodness.',
+        "Get farm-fresh produce delivered to your doorstep. No chemicals, no preservatives, just natural goodness.",
     },
     {
       icon: Heart,
-      title: 'Support Local Farmers',
+      title: "Support Local Farmers",
       description:
-        'Every purchase directly supports local farmers and their families. Help build sustainable farming communities.',
+        "Every purchase directly supports local farmers and their families. Help build sustainable farming communities.",
     },
     {
       icon: Shield,
-      title: 'Quality Guaranteed',
+      title: "Quality Guaranteed",
       description:
-        'All products are verified and meet quality standards. Get what you pay for, every single time.',
+        "All products are verified and meet quality standards. Get what you pay for, every single time.",
     },
     {
       icon: Clock,
-      title: 'Convenient Ordering',
+      title: "Convenient Ordering",
       description:
-        'Browse products, place orders, and track deliveries all from your phone or computer.',
+        "Browse products, place orders, and track deliveries all from your phone or computer.",
     },
     {
       icon: MapPin,
-      title: 'Know Your Source',
+      title: "Know Your Source",
       description:
-        'See exactly where your food comes from. Meet the farmers growing your vegetables and fruits.',
+        "See exactly where your food comes from. Meet the farmers growing your vegetables and fruits.",
     },
     {
       icon: ShoppingBag,
-      title: 'Fair Prices',
+      title: "Fair Prices",
       description:
-        'No middlemen means better prices for you and better income for farmers. Everyone wins.',
+        "No middlemen means better prices for you and better income for farmers. Everyone wins.",
     },
   ];
 
@@ -67,9 +79,12 @@ export default function ForConsumers() {
           style={{ backgroundColor: COLORS.primary }}
         ></div>
         <div className="relative px-8 py-16 md:py-24 text-center text-white">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">FRESH FROM FARM TO TABLE</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            FRESH FROM FARM TO TABLE
+          </h1>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Buy directly from local farmers and enjoy the freshest, healthiest produce
+            Buy directly from local farmers and enjoy the freshest, healthiest
+            produce
           </p>
           <Button
             size="lg"
@@ -84,13 +99,16 @@ export default function ForConsumers() {
       {/* Why Choose Us */}
       <section className="space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold mb-4" style={{ color: COLORS.primary }}>
+          <h2
+            className="text-3xl font-bold mb-4"
+            style={{ color: COLORS.primary }}
+          >
             Why Choose AgroConnect?
           </h2>
           <p className="text-gray-600 max-w-4xl mx-auto text-lg">
-            We connect you directly with farmers, eliminating middlemen and ensuring you get the
-            freshest produce at fair prices while supporting sustainable agriculture and local
-            communities.
+            We connect you directly with farmers, eliminating middlemen and
+            ensuring you get the freshest produce at fair prices while
+            supporting sustainable agriculture and local communities.
           </p>
         </div>
 
@@ -102,7 +120,10 @@ export default function ForConsumers() {
                   className="p-3 rounded-full w-fit"
                   style={{ backgroundColor: `${COLORS.primary}20` }}
                 >
-                  <benefit.icon className="h-8 w-8" style={{ color: COLORS.primary }} />
+                  <benefit.icon
+                    className="h-8 w-8"
+                    style={{ color: COLORS.primary }}
+                  />
                 </div>
                 <h3 className="font-semibold text-lg">{benefit.title}</h3>
                 <p className="text-gray-600">{benefit.description}</p>
@@ -114,7 +135,10 @@ export default function ForConsumers() {
 
       {/* How It Works */}
       <section className="bg-gray-50 rounded-2xl p-8 md:p-12">
-        <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: COLORS.primary }}>
+        <h2
+          className="text-3xl font-bold mb-8 text-center"
+          style={{ color: COLORS.primary }}
+        >
           How It Works
         </h2>
         <div className="grid gap-8 md:grid-cols-4">
@@ -127,7 +151,8 @@ export default function ForConsumers() {
             </div>
             <h3 className="font-semibold text-xl mb-3">Browse Products</h3>
             <p className="text-gray-600">
-              Explore our marketplace filled with fresh produce from local farmers.
+              Explore our marketplace filled with fresh produce from local
+              farmers.
             </p>
           </div>
           <div className="text-center">
@@ -151,7 +176,8 @@ export default function ForConsumers() {
             </div>
             <h3 className="font-semibold text-xl mb-3">Place Order</h3>
             <p className="text-gray-600">
-              Complete your purchase securely and choose your delivery preferences.
+              Complete your purchase securely and choose your delivery
+              preferences.
             </p>
           </div>
           <div className="text-center">
@@ -171,24 +197,33 @@ export default function ForConsumers() {
 
       {/* Product Categories */}
       <section className="space-y-8">
-        <h2 className="text-3xl font-bold text-center" style={{ color: COLORS.primary }}>
+        <h2
+          className="text-3xl font-bold text-center"
+          style={{ color: COLORS.primary }}
+        >
           What You Can Find
         </h2>
         <div className="grid gap-6 md:grid-cols-4">
-          {['Fresh Vegetables', 'Seasonal Fruits', 'Dairy Products', 'Organic Grains'].map(
-            (category, index) => (
-              <Card
-                key={index}
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={handleGetStarted}
-              >
-                <CardContent className="p-6 text-center">
-                  <Leaf className="h-12 w-12 mx-auto mb-4" style={{ color: COLORS.primary }} />
-                  <h3 className="font-semibold text-lg">{category}</h3>
-                </CardContent>
-              </Card>
-            )
-          )}
+          {[
+            "Fresh Vegetables",
+            "Seasonal Fruits",
+            "Dairy Products",
+            "Organic Grains",
+          ].map((category, index) => (
+            <Card
+              key={index}
+              className="hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={handleCategoryClick}
+            >
+              <CardContent className="p-6 text-center">
+                <Leaf
+                  className="h-12 w-12 mx-auto mb-4"
+                  style={{ color: COLORS.primary }}
+                />
+                <h3 className="font-semibold text-lg">{category}</h3>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
@@ -197,10 +232,12 @@ export default function ForConsumers() {
         className="rounded-2xl p-8 md:p-12 text-center text-white"
         style={{ backgroundColor: COLORS.primary }}
       >
-        <h2 className="text-3xl font-bold mb-4">Start Your Healthy Journey Today</h2>
+        <h2 className="text-3xl font-bold mb-4">
+          Start Your Healthy Journey Today
+        </h2>
         <p className="text-xl mb-8 max-w-2xl mx-auto">
-          Join thousands of families enjoying fresh, locally-sourced produce delivered to their
-          doorstep.
+          Join thousands of families enjoying fresh, locally-sourced produce
+          delivered to their doorstep.
         </p>
         <Button
           size="lg"
