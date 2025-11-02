@@ -18,10 +18,16 @@ import ForConsumers from './pages/solutions/ForConsumers';
 import SupplyChain from './pages/solutions/SupplyChain';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
-import { FarmerDashboard } from './pages/farmer/Dashboard';
-import { ManageProducts } from './pages/farmer/ManageProducts';
-import { FarmerOrders } from './pages/farmer/Orders';
-import { Marketplace, ProductDetail, BuyerDashboard, BuyerOrders, Cart } from './pages/buyer';
+import { FarmerDashboard, ManageProducts, FarmerOrders, FarmerGuidelines } from './pages/farmer';
+import {
+  Marketplace,
+  ProductDetail,
+  BuyerDashboard,
+  BuyerOrders,
+  Cart,
+  TermsAndConditions,
+} from './pages/buyer';
+import { DriverSignup, DriverDashboard } from './pages/driver';
 import { Profile } from './pages/Profile';
 import {
   AdminDashboard,
@@ -127,6 +133,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/farmer/guidelines"
+                element={
+                  <ProtectedRoute allowedRoles={['farmer']}>
+                    <FarmerGuidelines />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Buyer Routes */}
               <Route
@@ -166,6 +180,24 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['buyer']}>
                     <BuyerOrders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/buyer/terms"
+                element={
+                  <ProtectedRoute allowedRoles={['buyer']}>
+                    <TermsAndConditions />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Driver Routes */}
+              <Route
+                path="/driver/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['driver']}>
+                    <DriverDashboard />
                   </ProtectedRoute>
                 }
               />
