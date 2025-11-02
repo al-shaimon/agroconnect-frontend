@@ -13,6 +13,8 @@ import {
   Receipt,
   FileCheck,
   UserCircle,
+  Truck,
+  MapPin,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -50,6 +52,14 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
+  const driverLinks = [
+    { to: '/driver/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/driver/available-orders', icon: Package, label: 'Available Orders' },
+    { to: '/driver/my-orders', icon: Truck, label: 'My Deliveries' },
+    { to: '/driver/profile', icon: MapPin, label: 'Location & Profile' },
+    { to: '/profile', icon: UserCircle, label: 'Account' },
+  ];
+
   const getLinks = () => {
     switch (user?.role) {
       case 'farmer':
@@ -58,6 +68,8 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
         return buyerLinks;
       case 'admin':
         return adminLinks;
+      case 'driver':
+        return driverLinks;
       default:
         return [];
     }

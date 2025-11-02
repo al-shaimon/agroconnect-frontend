@@ -35,6 +35,8 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
         return '/buyer/dashboard';
       case 'admin':
         return '/admin/panel';
+      case 'driver':
+        return '/driver/dashboard';
       default:
         return '/';
     }
@@ -150,12 +152,26 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                 <Button variant="outline" onClick={() => navigate('/login')}>
                   Login
                 </Button>
-                <Button
-                  onClick={() => navigate('/register')}
-                  style={{ backgroundColor: COLORS.primary }}
-                >
-                  Register
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button style={{ backgroundColor: COLORS.primary }}>
+                      Register
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link to="/register" className="cursor-pointer">
+                        Farmer / Buyer
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/register-driver" className="cursor-pointer">
+                        Driver / Volunteer
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>

@@ -41,6 +41,7 @@ export const Login = () => {
         if (role === 'farmer') navigate('/farmer/dashboard');
         else if (role === 'buyer') navigate('/buyer/dashboard');
         else if (role === 'admin') navigate('/admin/panel');
+        else if (role === 'driver') navigate('/driver/dashboard');
         else navigate('/');
       }
     } catch (error: unknown) {
@@ -97,11 +98,19 @@ export const Login = () => {
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600">Don't have an account? </span>
-            <Link to="/register" style={{ color: COLORS.primary }} className="font-medium">
-              Register
-            </Link>
+          <div className="mt-4 text-center text-sm space-y-2">
+            <div>
+              <span className="text-gray-600">Don't have an account? </span>
+              <Link to="/register" style={{ color: COLORS.primary }} className="font-medium">
+                Register
+              </Link>
+            </div>
+            <div className="pt-2 border-t">
+              <span className="text-gray-600">Want to become a driver? </span>
+              <Link to="/register-driver" style={{ color: COLORS.primary }} className="font-medium">
+                Driver Registration
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
