@@ -52,11 +52,11 @@ export const Profile = () => {
   const [documentData, setDocumentData] = useState<{
     documentType: 'nid' | 'passport' | 'driving_license' | 'birth_certificate' | 'trade_license';
     documentNumber: string;
-    documentFiles: File[];
+    documentFiles: (File | null)[];
   }>({
     documentType: 'nid',
     documentNumber: '',
-    documentFiles: [],
+    documentFiles: [] as (File | null)[],
   });
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<{
@@ -216,9 +216,11 @@ export const Profile = () => {
       formDataToSend.append('documentType', documentData.documentType);
       formDataToSend.append('documentNumber', documentData.documentNumber);
 
-      // Append all files
+      // Append all files (skip nulls)
       documentData.documentFiles.forEach((file) => {
-        formDataToSend.append('documents', file);
+        if (file) {
+          formDataToSend.append('documents', file);
+        }
       });
 
       const response = await authService.uploadVerificationDocument(formDataToSend);
@@ -460,8 +462,9 @@ export const Profile = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                disabled={!isEditing}
+                disabled={true}
                 required
+                className="bg-gray-50 cursor-not-allowed"
               />
             </div>
 
@@ -699,7 +702,7 @@ export const Profile = () => {
                               type="button"
                               onClick={() => {
                                 const newFiles = [...documentData.documentFiles];
-                                newFiles[0] = null as any;
+                                newFiles[0] = null;
                                 setDocumentData({
                                   ...documentData,
                                   documentFiles: newFiles.filter(Boolean),
@@ -747,7 +750,7 @@ export const Profile = () => {
                               type="button"
                               onClick={() => {
                                 const newFiles = [...documentData.documentFiles];
-                                newFiles[1] = null as any;
+                                newFiles[1] = null;
                                 setDocumentData({
                                   ...documentData,
                                   documentFiles: newFiles.filter(Boolean),

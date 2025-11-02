@@ -65,6 +65,17 @@ export const farmerService = {
     return response.data;
   },
 
+  // Verify payment
+  verifyPayment: async (
+    orderId: string,
+    action: 'verify' | 'reject'
+  ): Promise<ApiResponse<Order>> => {
+    const response = await api.put<ApiResponse<Order>>(`/farmer/orders/${orderId}/verify-payment`, {
+      action,
+    });
+    return response.data;
+  },
+
   // Get farmer stats
   getStats: async (): Promise<ApiResponse<FarmerStats>> => {
     const response = await api.get<ApiResponse<FarmerStats>>('/farmer/stats');

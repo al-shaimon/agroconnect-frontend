@@ -68,14 +68,14 @@ export const AdminOrders = () => {
 
   const getStatusBadge = (status: string) => {
     const config = {
-      pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' },
+      processing: { color: 'bg-yellow-100 text-yellow-800', text: 'Processing' },
       confirmed: { color: 'bg-blue-100 text-blue-800', text: 'Confirmed' },
       'in-transit': { color: 'bg-purple-100 text-purple-800', text: 'In Transit' },
       delivered: { color: 'bg-green-100 text-green-800', text: 'Delivered' },
       cancelled: { color: 'bg-red-100 text-red-800', text: 'Cancelled' },
     };
 
-    const item = config[status as keyof typeof config] || config.pending;
+    const item = config[status as keyof typeof config] || config.processing;
     return <Badge className={item.color}>{item.text}</Badge>;
   };
 
@@ -109,7 +109,7 @@ export const AdminOrders = () => {
 
   const calculateStats = () => {
     const total = filteredOrders.length;
-    const pending = filteredOrders.filter((o) => o.status === 'pending').length;
+    const processing = filteredOrders.filter((o) => o.status === 'processing').length;
     const confirmed = filteredOrders.filter((o) => o.status === 'confirmed').length;
     const inTransit = filteredOrders.filter((o) => o.status === 'in-transit').length;
     const delivered = filteredOrders.filter((o) => o.status === 'delivered').length;
@@ -118,7 +118,7 @@ export const AdminOrders = () => {
       .filter((o) => ['confirmed', 'in-transit', 'delivered'].includes(o.status))
       .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
-    return { total, pending, confirmed, inTransit, delivered, cancelled, totalRevenue };
+    return { total, processing, confirmed, inTransit, delivered, cancelled, totalRevenue };
   };
 
   const stats = calculateStats();
@@ -154,8 +154,8 @@ export const AdminOrders = () => {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-gray-600">Pending</p>
-            <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+            <p className="text-sm text-gray-600">Processing</p>
+            <p className="text-2xl font-bold text-yellow-600">{stats.processing}</p>
           </CardContent>
         </Card>
         <Card>
@@ -212,7 +212,7 @@ export const AdminOrders = () => {
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="all">All Statuses</option>
-                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="in-transit">In Transit</option>
                 <option value="delivered">Delivered</option>

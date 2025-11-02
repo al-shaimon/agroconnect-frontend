@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from '../../components/ui/card';
 import { COLORS } from '../../constants/theme';
-import { Sprout } from 'lucide-react';
+import { Sprout, User, ShoppingCart } from 'lucide-react';
 import type { LoginFormData } from '../../types';
 
 export const Login = () => {
@@ -25,8 +25,14 @@ export const Login = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormData>();
+
+  const fillDemoCredentials = (email: string, password: string) => {
+    setValue('email', email);
+    setValue('password', password);
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -96,6 +102,33 @@ export const Login = () => {
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
+
+            {/* Demo Credentials */}
+            <div className="pt-4 border-t">
+              <p className="text-sm text-gray-600 text-center mb-3">Quick Demo Login:</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDemoCredentials('farmer@agroconnect.com', 'farmer123')}
+                  className="flex items-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  Farmer Demo
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDemoCredentials('buyer@agroconnect.com', 'buyer123')}
+                  className="flex items-center gap-2"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Buyer Demo
+                </Button>
+              </div>
+            </div>
           </form>
 
           <div className="mt-4 text-center text-sm space-y-2">

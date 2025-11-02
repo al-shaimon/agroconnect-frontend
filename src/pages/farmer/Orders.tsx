@@ -22,9 +22,11 @@ export const FarmerOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [verifyingPayment, setVerifyingPayment] = useState<string | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
+  const [buyerRatings, setBuyerRatings] = useState<Record<string, number>>({});
 
   // Rating state
   const [ratings, setRatings] = useState({
@@ -47,26 +49,79 @@ export const FarmerOrders = () => {
       const response = await farmerService.getOrders();
       setOrders(response.data || []);
 
-      // Check which orders have been reviewed
-      const reviewed = new Set<string>();
+      // Collect unique buyer IDs that need ratings (only for processing orders)
+      const uniqueBuyerIds = new Set<string>();
+      const deliveredOrderIds: string[] = [];
+
       for (const order of response.data || []) {
+        // Collect delivered orders for review check
         if (order.status === 'delivered') {
-          try {
-            const reviewCheck = await reviewService.canReviewOrder(order._id);
-            if (!reviewCheck.data?.canReview && reviewCheck.data?.review) {
-              reviewed.add(order._id);
-            }
-          } catch (error) {
-            console.error('Error checking review for order:', order._id, error);
+          deliveredOrderIds.push(order._id);
+        }
+
+        // Collect unique buyer IDs only for processing orders (where ratings are displayed)
+        if (order.status === 'processing' && order.paymentStatus === 'pending') {
+          const buyer = typeof order.buyerId === 'object' ? order.buyerId : null;
+          if (buyer && buyer._id) {
+            uniqueBuyerIds.add(buyer._id);
           }
         }
       }
+
+      // Fetch buyer ratings in parallel (only for unique buyers)
+      const ratings: Record<string, number> = {};
+      const ratingPromises = Array.from(uniqueBuyerIds).map(async (buyerId) => {
+        try {
+          const buyerReviews = await reviewService.getUserReviews(buyerId);
+          if (buyerReviews.data && buyerReviews.data.stats) {
+            ratings[buyerId] = buyerReviews.data.stats.averageRating;
+          }
+        } catch (error) {
+          console.error('Error fetching buyer reviews for:', buyerId, error);
+        }
+      });
+
+      // Fetch review checks in parallel (only for delivered orders)
+      const reviewed = new Set<string>();
+      const reviewPromises = deliveredOrderIds.map(async (orderId) => {
+        try {
+          const reviewCheck = await reviewService.canReviewOrder(orderId);
+          if (!reviewCheck.data?.canReview && reviewCheck.data?.review) {
+            reviewed.add(orderId);
+          }
+        } catch (error) {
+          console.error('Error checking review for order:', orderId, error);
+        }
+      });
+
+      // Wait for all parallel requests to complete
+      await Promise.all([...ratingPromises, ...reviewPromises]);
+
       setReviewedOrders(reviewed);
+      setBuyerRatings(ratings);
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
       toast.error(err.response?.data?.message || 'Failed to fetch orders');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePaymentVerification = async (orderId: string, action: 'verify' | 'reject') => {
+    try {
+      setVerifyingPayment(orderId);
+      await farmerService.verifyPayment(orderId, action);
+      toast.success(
+        action === 'verify'
+          ? 'Payment verified successfully! Order confirmed.'
+          : 'Payment rejected. Order has been cancelled.'
+      );
+      fetchOrders();
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || 'Failed to verify payment');
+    } finally {
+      setVerifyingPayment(null);
     }
   };
 
@@ -86,7 +141,7 @@ export const FarmerOrders = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+      processing: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
       confirmed: { color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
       'in-transit': { color: 'bg-purple-100 text-purple-800', icon: Truck },
       delivered: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
@@ -104,17 +159,22 @@ export const FarmerOrders = () => {
     );
   };
 
-  const getNextStatus = (currentStatus: string) => {
+  const getNextStatus = (currentStatus: string, paymentStatus?: string) => {
+    // Can't proceed to confirmed if payment is not verified
+    if (currentStatus === 'processing' && paymentStatus !== 'verified') {
+      return null;
+    }
+
     const statusFlow = {
-      pending: 'confirmed',
+      processing: 'confirmed',
       confirmed: 'in-transit',
       'in-transit': 'delivered',
     };
     return statusFlow[currentStatus as keyof typeof statusFlow];
   };
 
-  const getNextStatusLabel = (currentStatus: string) => {
-    const nextStatus = getNextStatus(currentStatus);
+  const getNextStatusLabel = (currentStatus: string, paymentStatus?: string) => {
+    const nextStatus = getNextStatus(currentStatus, paymentStatus);
     if (!nextStatus) return null;
 
     const labels = {
@@ -195,10 +255,11 @@ export const FarmerOrders = () => {
       } else {
         toast.error(response.message || 'Failed to submit review');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error submitting review:', error);
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
       const errorMessage =
-        error?.response?.data?.message || error?.message || 'Failed to submit review';
+        err?.response?.data?.message || err?.message || 'Failed to submit review';
       toast.error(errorMessage);
     } finally {
       setSubmittingReview(false);
@@ -252,8 +313,8 @@ export const FarmerOrders = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {orders.map((order) => {
             const buyer = typeof order.buyerId === 'object' ? order.buyerId : null;
-            const nextStatus = getNextStatus(order.status);
-            const nextStatusLabel = getNextStatusLabel(order.status);
+            const nextStatus = getNextStatus(order.status, order.paymentStatus);
+            const nextStatusLabel = getNextStatusLabel(order.status, order.paymentStatus);
 
             return (
               <Card key={order._id}>
@@ -290,9 +351,108 @@ export const FarmerOrders = () => {
                           <span className="text-gray-600">Email:</span>{' '}
                           <span className="font-medium">{buyer.email}</span>
                         </p>
+                        {buyerRatings[buyer._id] && (
+                          <p className="flex items-center gap-2 mt-2">
+                            <span className="text-gray-600">Average Rating:</span>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="font-medium text-yellow-600">
+                                {buyerRatings[buyer._id].toFixed(1)}
+                              </span>
+                            </div>
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
+
+                  {/* Payment Details - Show for processing orders with pending payment */}
+                  {order.status === 'processing' &&
+                    order.paymentStatus === 'pending' &&
+                    order.paymentDetails && (
+                      <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <Clock className="h-5 w-5 text-yellow-600" />
+                          Payment Verification Required
+                        </h4>
+                        <div className="space-y-2 text-sm mb-4">
+                          <p>
+                            <span className="text-gray-600">bKash Number:</span>{' '}
+                            <span className="font-mono font-medium">
+                              {order.paymentDetails.bkashNumber}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-gray-600">Transaction ID:</span>{' '}
+                            <span className="font-mono font-medium">
+                              {order.paymentDetails.transactionId}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handlePaymentVerification(order._id, 'verify')}
+                            disabled={verifyingPayment === order._id}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            {verifyingPayment === order._id ? (
+                              <span className="flex items-center gap-2">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                Verifying...
+                              </span>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Verify Payment
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={() => handlePaymentVerification(order._id, 'reject')}
+                            disabled={verifyingPayment === order._id}
+                            variant="destructive"
+                            className="flex-1"
+                          >
+                            {verifyingPayment === order._id ? (
+                              'Rejecting...'
+                            ) : (
+                              <>
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Reject Payment
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Payment Details - Show for confirmed/verified orders */}
+                  {order.paymentDetails &&
+                    order.paymentStatus === 'verified' &&
+                    (order.status === 'confirmed' ||
+                      order.status === 'in-transit' ||
+                      order.status === 'delivered') && (
+                      <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                          Payment Information (Verified)
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <p>
+                            <span className="text-gray-600">bKash Number:</span>{' '}
+                            <span className="font-mono font-medium">
+                              {order.paymentDetails.bkashNumber}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-gray-600">Transaction ID:</span>{' '}
+                            <span className="font-mono font-medium">
+                              {order.paymentDetails.transactionId}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                   {/* Order Items */}
                   <div>
@@ -384,7 +544,7 @@ export const FarmerOrders = () => {
                             nextStatusLabel
                           )}
                         </Button>
-                        {order.status === 'pending' && (
+                        {order.status === 'confirmed' && (
                           <Button
                             onClick={() => handleStatusUpdate(order._id, 'cancelled')}
                             disabled={updatingStatus === order._id}
