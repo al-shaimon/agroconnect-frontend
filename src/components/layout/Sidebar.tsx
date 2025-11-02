@@ -13,6 +13,8 @@ import {
   Receipt,
   FileCheck,
   UserCircle,
+  BookOpen,
+  FileText,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -29,6 +31,7 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     { to: '/farmer/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/farmer/products', icon: Package, label: 'My Products' },
     { to: '/farmer/orders', icon: ClipboardList, label: 'Orders' },
+    { to: '/farmer/guidelines', icon: BookOpen, label: 'Guidelines' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
@@ -37,6 +40,7 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     { to: '/buyer/marketplace', icon: Store, label: 'Marketplace' },
     { to: '/buyer/orders', icon: Receipt, label: 'My Orders' },
     { to: '/buyer/cart', icon: ShoppingBag, label: 'Cart' },
+    { to: '/buyer/terms', icon: FileText, label: 'Terms & Conditions' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
