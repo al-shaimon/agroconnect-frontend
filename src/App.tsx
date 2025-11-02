@@ -37,7 +37,6 @@ import {
   AdminBroadcast,
   AdminGlobalProducts,
 } from './pages/admin';
-import { DriverSignup, DriverDashboard } from './pages/driver';
 
 function App() {
   const { initialize, isAuthenticated, isLoading } = useAuth();
