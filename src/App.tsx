@@ -84,7 +84,7 @@ function App() {
             isAuthenticated && isDashboardRoute ? 'lg:ml-64' : ''
           }`}
         >
-          <div className="container mx-auto px-4 py-8 max-w-full">
+          <div className="container mx-auto px-4 py-8">
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
