@@ -64,6 +64,7 @@ export const Cart = () => {
   const [bkashNumber, setBkashNumber] = useState('');
   const [transactionId, setTransactionId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [openPopovers, setOpenPopovers] = useState<Record<string, boolean>>({});
 
   const isVerified = user?.verificationStatus === 'approved';
   const deliveryFee = 50;
@@ -126,6 +127,8 @@ export const Cart = () => {
   const handleSelectSlot = (productId: string, slot: DeliverySlot) => {
     updateSlot(productId, slot);
     toast.success('Delivery slot selected');
+    // Close the popover for this product
+    setOpenPopovers((prev) => ({ ...prev, [productId]: false }));
   };
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
@@ -289,7 +292,7 @@ export const Cart = () => {
 
   if (items.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <Button variant="outline" onClick={() => navigate('/buyer/marketplace')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Marketplace
@@ -314,15 +317,15 @@ export const Cart = () => {
 
   if (showCheckout) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <Button variant="outline" onClick={() => setShowCheckout(false)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Cart
         </Button>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-4 md:gap-6">
           {/* Delivery Address */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2 space-y-4 md:space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -330,8 +333,8 @@ export const Cart = () => {
                   Delivery Address
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
+              <CardContent className="space-y-3 md:space-y-4">
+                <div className="grid md:grid-cols-2 gap-3 md:gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="street">Street/Area *</Label>
                     <Input
@@ -566,18 +569,7 @@ export const Cart = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-          <p className="text-gray-600 mt-1">{items.length} items in your cart</p>
-        </div>
-        <Button variant="outline" onClick={() => navigate('/buyer/marketplace')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Continue Shopping
-        </Button>
-      </div>
-
+    <div className="space-y-4 md:space-y-6 px-4 md:px-0">
       {!isVerified && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -590,30 +582,32 @@ export const Cart = () => {
         </Alert>
       )}
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-4 md:gap-6">
         {/* Cart Items */}
-        <div className="md:col-span-2 space-y-4">
+        <div className="md:col-span-2 space-y-3 md:space-y-4">
           {items.map((item) => {
             const farmer = typeof item.product.farmerId === 'object' ? item.product.farmerId : null;
             const price = item.product.price ?? 0;
 
             return (
               <Card key={item.product._id}>
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                     {item.product.imageUrl && (
                       <img
                         src={item.product.imageUrl}
                         alt={item.product.name}
-                        className="w-24 h-24 object-cover rounded-lg"
+                        className="w-full sm:w-20 md:w-24 h-48 sm:h-20 md:h-24 object-cover rounded-lg"
                       />
                     )}
 
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold text-lg">{item.product.name}</h3>
-                          <div className="flex gap-2 mt-1">
+                    <div className="flex-1 space-y-2 md:space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-base md:text-lg truncate">
+                            {item.product.name}
+                          </h3>
+                          <div className="flex gap-2 mt-1 flex-wrap">
                             <Badge style={{ backgroundColor: COLORS.primary }} className="text-xs">
                               {item.product.category}
                             </Badge>
@@ -626,19 +620,19 @@ export const Cart = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveItem(item.product._id)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
 
                       {farmer && (
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs md:text-sm text-gray-600">
                           Farmer: <span className="font-medium">{farmer.name}</span>
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <div className="flex items-center border rounded-lg">
                             <Button
@@ -651,7 +645,9 @@ export const Cart = () => {
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
-                            <span className="px-4 font-semibold">{item.quantity}</span>
+                            <span className="px-3 md:px-4 font-semibold text-sm md:text-base">
+                              {item.quantity}
+                            </span>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -663,14 +659,19 @@ export const Cart = () => {
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>
-                          <span className="text-sm text-gray-600">{item.product.unit}</span>
+                          <span className="text-xs md:text-sm text-gray-600">
+                            {item.product.unit}
+                          </span>
                         </div>
 
-                        <div className="text-right">
-                          <p className="text-sm text-gray-600">
+                        <div className="text-left sm:text-right">
+                          <p className="text-xs md:text-sm text-gray-600">
                             ৳{price} × {item.quantity}
                           </p>
-                          <p className="text-lg font-bold" style={{ color: COLORS.primary }}>
+                          <p
+                            className="text-base md:text-lg font-bold"
+                            style={{ color: COLORS.primary }}
+                          >
                             ৳{(price * item.quantity).toFixed(2)}
                           </p>
                         </div>
@@ -678,27 +679,42 @@ export const Cart = () => {
 
                       {item.selectedSlot ? (
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="h-4 w-4 text-green-600" />
-                              <span className="font-medium">
-                                {formatDate(item.selectedSlot.date)}
-                              </span>
-                              <Clock className="h-4 w-4 text-green-600 ml-2" />
-                              <span>
-                                {formatTime(item.selectedSlot.timeSlot.start)} -{' '}
-                                {formatTime(item.selectedSlot.timeSlot.end)}
-                              </span>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 md:h-4 w-3 md:w-4 text-green-600 flex-shrink-0" />
+                                <span className="font-medium">
+                                  {formatDate(item.selectedSlot.date)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 md:h-4 w-3 md:w-4 text-green-600 flex-shrink-0" />
+                                <span>
+                                  {formatTime(item.selectedSlot.timeSlot.start)} -{' '}
+                                  {formatTime(item.selectedSlot.timeSlot.end)}
+                                </span>
+                              </div>
                             </div>
-                            <Popover>
+                            <Popover
+                              open={openPopovers[item.product._id] || false}
+                              onOpenChange={(open) =>
+                                setOpenPopovers((prev) => ({ ...prev, [item.product._id]: open }))
+                              }
+                            >
                               <PopoverTrigger asChild>
-                                <Button variant="outline" size="sm">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full sm:w-auto text-xs md:text-sm"
+                                >
                                   Change Slot
                                 </Button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-80" align="end">
-                                <div className="space-y-3">
-                                  <h4 className="font-semibold">Select Delivery Time</h4>
+                              <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80" align="end">
+                                <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                                  <h4 className="font-semibold text-sm md:text-base">
+                                    Select Delivery Time
+                                  </h4>
                                   {generateDeliverySlots()
                                     .reduce((acc, slot) => {
                                       const existing = acc.find((s) => s.date === slot.date);
@@ -711,10 +727,10 @@ export const Cart = () => {
                                     }, [] as { date: string; slots: DeliverySlot[] }[])
                                     .map((group) => (
                                       <div key={group.date} className="space-y-2">
-                                        <h5 className="text-sm font-medium text-gray-700">
+                                        <h5 className="text-xs md:text-sm font-medium text-gray-700">
                                           {formatDate(group.date)}
                                         </h5>
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                           {group.slots.map((slot, idx) => (
                                             <button
                                               key={idx}
@@ -724,8 +740,8 @@ export const Cart = () => {
                                               className="p-2 text-xs border rounded hover:border-green-500 hover:bg-green-50 transition-colors text-left"
                                             >
                                               <div className="flex items-center gap-1">
-                                                <Clock className="h-3 w-3" />
-                                                <span>
+                                                <Clock className="h-3 w-3 flex-shrink-0" />
+                                                <span className="truncate">
                                                   {formatTime(slot.timeSlot.start)} -{' '}
                                                   {formatTime(slot.timeSlot.end)}
                                                 </span>
@@ -741,19 +757,26 @@ export const Cart = () => {
                           </div>
                         </div>
                       ) : (
-                        <Popover>
+                        <Popover
+                          open={openPopovers[item.product._id] || false}
+                          onOpenChange={(open) =>
+                            setOpenPopovers((prev) => ({ ...prev, [item.product._id]: open }))
+                          }
+                        >
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
-                              className="w-full border-orange-300 text-orange-700 hover:bg-orange-50"
+                              className="w-full border-orange-300 text-orange-700 hover:bg-orange-50 text-xs md:text-sm"
                             >
                               <Calendar className="h-4 w-4 mr-2" />
                               Select Delivery Slot
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-80" align="start">
-                            <div className="space-y-3">
-                              <h4 className="font-semibold">Select Delivery Time</h4>
+                          <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80" align="start">
+                            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                              <h4 className="font-semibold text-sm md:text-base">
+                                Select Delivery Time
+                              </h4>
                               {generateDeliverySlots()
                                 .reduce((acc, slot) => {
                                   const existing = acc.find((s) => s.date === slot.date);
@@ -766,10 +789,10 @@ export const Cart = () => {
                                 }, [] as { date: string; slots: DeliverySlot[] }[])
                                 .map((group) => (
                                   <div key={group.date} className="space-y-2">
-                                    <h5 className="text-sm font-medium text-gray-700">
+                                    <h5 className="text-xs md:text-sm font-medium text-gray-700">
                                       {formatDate(group.date)}
                                     </h5>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                       {group.slots.map((slot, idx) => (
                                         <button
                                           key={idx}
@@ -777,8 +800,8 @@ export const Cart = () => {
                                           className="p-2 text-xs border rounded hover:border-green-500 hover:bg-green-50 transition-colors text-left"
                                         >
                                           <div className="flex items-center gap-1">
-                                            <Clock className="h-3 w-3" />
-                                            <span>
+                                            <Clock className="h-3 w-3 flex-shrink-0" />
+                                            <span className="truncate">
                                               {formatTime(slot.timeSlot.start)} -{' '}
                                               {formatTime(slot.timeSlot.end)}
                                             </span>

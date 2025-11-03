@@ -22,7 +22,7 @@ export default function BlogDetail() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
       {/* Back button */}
       <Link to="/blog" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
         <ArrowLeft className="h-4 w-4" />
@@ -30,25 +30,25 @@ export default function BlogDetail() {
       </Link>
 
       {/* Title */}
-      <h1 className="text-4xl md:text-5xl font-bold" style={{ color: COLORS.primary }}>
+      <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: COLORS.primary }}>
         {blog.title}
       </h1>
 
       {/* Meta info */}
-      <div className="flex items-center gap-4 text-gray-600">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 md:gap-4 text-sm md:text-base text-gray-600">
+        <div className="flex items-center gap-1 md:gap-2">
           <Calendar className="h-4 w-4" />
           <span>{blog.date}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <Clock className="h-4 w-4" />
           <span>{blog.read}</span>
         </div>
       </div>
 
       {/* Featured image */}
-      <div className="rounded-xl overflow-hidden">
-        <img src={blog.image} alt={blog.title} className="w-full h-96 object-cover" />
+      <div className="rounded-lg md:rounded-xl overflow-hidden">
+        <img src={blog.image} alt={blog.title} className="w-full h-64 md:h-96 object-cover" />
       </div>
 
       {/* Content */}

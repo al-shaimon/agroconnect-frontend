@@ -6,7 +6,7 @@ import type { Order } from '../../types';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '../../components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,17 @@ import {
 import { Textarea } from '../../components/ui/textarea';
 import { Label } from '../../components/ui/label';
 import { COLORS } from '../../constants/theme';
-import { Package, Clock, CheckCircle, Truck, XCircle, Star, RefreshCw } from 'lucide-react';
+import {
+  Package,
+  Clock,
+  CheckCircle,
+  Truck,
+  XCircle,
+  Star,
+  RefreshCw,
+  Filter,
+  ArrowLeft,
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'react-toastify';
 
@@ -265,191 +275,362 @@ export const BuyerOrders = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-        <p className="text-gray-600 mt-1">Track and manage your orders</p>
+    <div className="space-y-4 md:space-y-6">
+      {/* Filter Section - Mobile & Desktop */}
+      {/* Mobile Filter - Compact Dropdown with Marketplace Button */}
+      <div className="md:hidden flex gap-2">
+        <Select value={activeTab} onValueChange={setActiveTab}>
+          <SelectTrigger className="flex-1 h-12 border-gray-200 shadow-sm">
+            <div className="flex items-center gap-2">
+              {getStatusIcon(activeTab === 'all' ? 'processing' : activeTab)}
+              <span className="font-medium">
+                {activeTab === 'all' ? 'All Orders' : getStatusLabel(activeTab)}
+              </span>
+              <Badge
+                variant="secondary"
+                className="ml-auto"
+                style={{ backgroundColor: `${COLORS.primary}15`, color: COLORS.primary }}
+              >
+                {activeTab === 'all'
+                  ? orders.length
+                  : orders.filter((o) => o.status === activeTab).length}
+              </Badge>
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">
+              <div className="flex items-center justify-between w-full min-w-[200px]">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" style={{ color: COLORS.primary }} />
+                  <span>All Orders</span>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {orders.length}
+                </Badge>
+              </div>
+            </SelectItem>
+            <SelectItem value="processing">
+              <div className="flex items-center justify-between w-full min-w-[200px]">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-yellow-600" />
+                  <span>Processing</span>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {orders.filter((o) => o.status === 'processing').length}
+                </Badge>
+              </div>
+            </SelectItem>
+            <SelectItem value="confirmed">
+              <div className="flex items-center justify-between w-full min-w-[200px]">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                  <span>Confirmed</span>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {orders.filter((o) => o.status === 'confirmed').length}
+                </Badge>
+              </div>
+            </SelectItem>
+            <SelectItem value="in-transit">
+              <div className="flex items-center justify-between w-full min-w-[200px]">
+                <div className="flex items-center gap-2">
+                  <Truck className="h-4 w-4 text-purple-600" />
+                  <span>In Transit</span>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {orders.filter((o) => o.status === 'in-transit').length}
+                </Badge>
+              </div>
+            </SelectItem>
+            <SelectItem value="delivered">
+              <div className="flex items-center justify-between w-full min-w-[200px]">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-green-600" />
+                  <span>Delivered</span>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {orders.filter((o) => o.status === 'delivered').length}
+                </Badge>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          onClick={() => navigate('/buyer/marketplace')}
+          className="px-3 shadow-sm whitespace-nowrap"
+          style={{ backgroundColor: COLORS.primary }}
+        >
+          <ArrowLeft className="h-4 w-4 mr-1.5" />
+          Marketplace
+        </Button>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">All Orders ({orders.length})</TabsTrigger>
-          <TabsTrigger value="processing">
-            Processing ({orders.filter((o) => o.status === 'processing').length})
-          </TabsTrigger>
-          <TabsTrigger value="confirmed">
-            Confirmed ({orders.filter((o) => o.status === 'confirmed').length})
-          </TabsTrigger>
-          <TabsTrigger value="in-transit">
-            In Transit ({orders.filter((o) => o.status === 'in-transit').length})
-          </TabsTrigger>
-          <TabsTrigger value="delivered">
-            Delivered ({orders.filter((o) => o.status === 'delivered').length})
-          </TabsTrigger>
-        </TabsList>
+      {/* Desktop Pills - Clean & Modern */}
+      <div className="hidden md:flex items-center justify-between">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+              activeTab === 'all'
+                ? 'text-white shadow-md'
+                : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:shadow-sm'
+            }`}
+            style={activeTab === 'all' ? { backgroundColor: COLORS.primary } : {}}
+          >
+            <Filter className="h-4 w-4" />
+            All
+            <Badge
+              variant="secondary"
+              className={`text-xs ${
+                activeTab === 'all' ? 'bg-white/20 text-white border-0' : 'bg-gray-100'
+              }`}
+            >
+              {orders.length}
+            </Badge>
+          </button>
+          <button
+            onClick={() => setActiveTab('processing')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+              activeTab === 'processing'
+                ? 'bg-yellow-500 text-white shadow-md'
+                : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:shadow-sm'
+            }`}
+          >
+            <Clock className="h-4 w-4" />
+            Processing
+            <Badge
+              variant="secondary"
+              className={`text-xs ${
+                activeTab === 'processing' ? 'bg-white/20 text-white border-0' : 'bg-gray-100'
+              }`}
+            >
+              {orders.filter((o) => o.status === 'processing').length}
+            </Badge>
+          </button>
+          <button
+            onClick={() => setActiveTab('confirmed')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+              activeTab === 'confirmed'
+                ? 'bg-blue-500 text-white shadow-md'
+                : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:shadow-sm'
+            }`}
+          >
+            <CheckCircle className="h-4 w-4" />
+            Confirmed
+            <Badge
+              variant="secondary"
+              className={`text-xs ${
+                activeTab === 'confirmed' ? 'bg-white/20 text-white border-0' : 'bg-gray-100'
+              }`}
+            >
+              {orders.filter((o) => o.status === 'confirmed').length}
+            </Badge>
+          </button>
+          <button
+            onClick={() => setActiveTab('in-transit')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+              activeTab === 'in-transit'
+                ? 'bg-purple-500 text-white shadow-md'
+                : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:shadow-sm'
+            }`}
+          >
+            <Truck className="h-4 w-4" />
+            In Transit
+            <Badge
+              variant="secondary"
+              className={`text-xs ${
+                activeTab === 'in-transit' ? 'bg-white/20 text-white border-0' : 'bg-gray-100'
+              }`}
+            >
+              {orders.filter((o) => o.status === 'in-transit').length}
+            </Badge>
+          </button>
+          <button
+            onClick={() => setActiveTab('delivered')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+              activeTab === 'delivered'
+                ? 'bg-green-500 text-white shadow-md'
+                : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:shadow-sm'
+            }`}
+          >
+            <Package className="h-4 w-4" />
+            Delivered
+            <Badge
+              variant="secondary"
+              className={`text-xs ${
+                activeTab === 'delivered' ? 'bg-white/20 text-white border-0' : 'bg-gray-100'
+              }`}
+            >
+              {orders.filter((o) => o.status === 'delivered').length}
+            </Badge>
+          </button>
+        </div>
+        <Button
+          onClick={() => navigate('/buyer/marketplace')}
+          className="flex items-center gap-2 px-4 py-2 shadow-sm"
+          style={{ backgroundColor: COLORS.primary }}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Marketplace
+        </Button>
+      </div>
 
-        <TabsContent value={activeTab} className="mt-6">
-          {filteredOrders.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Package className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-4">
-                  {activeTab === 'all' ? 'No orders yet' : `No ${activeTab} orders`}
-                </p>
-                <Button
-                  onClick={() => navigate('/buyer/marketplace')}
-                  style={{ backgroundColor: COLORS.primary }}
-                >
-                  Browse Products
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredOrders.map((order) => {
-                const farmer = typeof order.farmerId === 'object' ? order.farmerId : null;
+      {/* Orders Content */}
+      <div>
+        {filteredOrders.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Package className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600 mb-4">
+                {activeTab === 'all' ? 'No orders yet' : `No ${activeTab} orders`}
+              </p>
+              <Button
+                onClick={() => navigate('/buyer/marketplace')}
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                Browse Products
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredOrders.map((order) => {
+              const farmer = typeof order.farmerId === 'object' ? order.farmerId : null;
 
-                return (
-                  <Card key={order._id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          {getStatusIcon(order.status)}
-                          <div>
-                            <CardTitle className="text-lg">Order #{order.orderId}</CardTitle>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {formatDistanceToNow(new Date(order.createdAt), {
-                                addSuffix: true,
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge className={getStatusColor(order.status)}>
-                          {getStatusLabel(order.status)}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {/* Farmer Info */}
-                        <div className="flex items-center justify-between pb-4 border-b">
-                          <div>
-                            <p className="text-sm text-gray-600">Farmer</p>
-                            <p className="font-semibold">{farmer?.name || 'Unknown'}</p>
-                            {farmer?.phone && (
-                              <p className="text-sm text-gray-600">{farmer.phone}</p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-600">Total Amount</p>
-                            <p className="text-2xl font-bold" style={{ color: COLORS.primary }}>
-                              ৳{order.totalAmount.toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Items */}
+              return (
+                <Card key={order._id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        {getStatusIcon(order.status)}
                         <div>
-                          <p className="text-sm font-semibold text-gray-700 mb-2">
-                            Items ({order.items.length})
+                          <CardTitle className="text-lg">Order #{order.orderId}</CardTitle>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {formatDistanceToNow(new Date(order.createdAt), {
+                              addSuffix: true,
+                            })}
                           </p>
-                          <div className="space-y-2">
-                            {order.items.map((item, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded"
-                              >
-                                <span>
-                                  {item.productName} x {item.quantity}
-                                </span>
-                                <span className="font-semibold">
-                                  ৳{item.subtotal.toLocaleString()}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
                         </div>
+                      </div>
+                      <Badge className={getStatusColor(order.status)}>
+                        {getStatusLabel(order.status)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {/* Farmer Info */}
+                      <div className="flex items-center justify-between pb-4 border-b">
+                        <div>
+                          <p className="text-sm text-gray-600">Farmer</p>
+                          <p className="font-semibold">{farmer?.name || 'Unknown'}</p>
+                          {farmer?.phone && <p className="text-sm text-gray-600">{farmer.phone}</p>}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-600">Total Amount</p>
+                          <p className="text-2xl font-bold" style={{ color: COLORS.primary }}>
+                            ৳{order.totalAmount.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
 
-                        {/* Payment Status */}
-                        {order.paymentStatus && (
-                          <div className="bg-gray-50 p-3 rounded-lg">
-                            <p className="text-sm font-semibold text-gray-700 mb-1">
-                              Payment Status
+                      {/* Items */}
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-2">
+                          Items ({order.items.length})
+                        </p>
+                        <div className="space-y-2">
+                          {order.items.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded"
+                            >
+                              <span>
+                                {item.productName} x {item.quantity}
+                              </span>
+                              <span className="font-semibold">
+                                ৳{item.subtotal.toLocaleString()}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Payment Status */}
+                      {order.paymentStatus && (
+                        <div className="bg-gray-50 p-3 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Payment Status</p>
+                          {order.paymentStatus === 'pending' && (
+                            <p className="text-sm text-yellow-600 flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              Pending Verification by Farmer
                             </p>
-                            {order.paymentStatus === 'pending' && (
-                              <p className="text-sm text-yellow-600 flex items-center gap-2">
-                                <Clock className="h-4 w-4" />
-                                Pending Verification by Farmer
-                              </p>
-                            )}
-                            {order.paymentStatus === 'verified' && (
-                              <p className="text-sm text-green-600 flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4" />
-                                Payment Verified
-                              </p>
-                            )}
-                            {order.paymentStatus === 'rejected' && (
-                              <p className="text-sm text-red-600 flex items-center gap-2">
-                                <XCircle className="h-4 w-4" />
-                                Payment Rejected
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Actions */}
-                        <div className="flex gap-2 pt-4">
-                          {order.status === 'delivered' && (
-                            <>
-                              {reviewedOrders.has(order._id) ? (
-                                <Button
-                                  variant="outline"
-                                  className="flex-1 flex items-center gap-2"
-                                  disabled
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                  Reviewed
-                                </Button>
-                              ) : (
-                                <Button
-                                  onClick={() => openReviewDialog(order)}
-                                  className="flex-1 flex items-center gap-2"
-                                  style={{ backgroundColor: COLORS.primary }}
-                                >
-                                  <Star className="h-4 w-4" />
-                                  Rate Farmer
-                                </Button>
-                              )}
-                            </>
+                          )}
+                          {order.paymentStatus === 'verified' && (
+                            <p className="text-sm text-green-600 flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4" />
+                              Payment Verified
+                            </p>
+                          )}
+                          {order.paymentStatus === 'rejected' && (
+                            <p className="text-sm text-red-600 flex items-center gap-2">
+                              <XCircle className="h-4 w-4" />
+                              Payment Rejected
+                            </p>
                           )}
                         </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex gap-2 pt-4">
+                        {order.status === 'delivered' && (
+                          <>
+                            {reviewedOrders.has(order._id) ? (
+                              <Button
+                                variant="outline"
+                                className="flex-1 flex items-center gap-2"
+                                disabled
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                                Reviewed
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={() => openReviewDialog(order)}
+                                className="flex-1 flex items-center gap-2"
+                                style={{ backgroundColor: COLORS.primary }}
+                              >
+                                <Star className="h-4 w-4" />
+                                Rate Farmer
+                              </Button>
+                            )}
+                          </>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Review Dialog */}
       <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Rate Your Experience</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg md:text-xl">Rate Your Experience</DialogTitle>
+            <DialogDescription className="text-sm">
               Please rate your experience with the farmer for order #{selectedOrder?.orderId}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
+          <div className="space-y-4 md:space-y-6 py-3 md:py-4">
             {/* Product Quality */}
             <div>
-              <Label className="text-base font-semibold">Product Quality</Label>
-              <p className="text-sm text-gray-600 mb-2">
+              <Label className="text-sm md:text-base font-semibold">Product Quality</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">
                 How would you rate the quality of the products?
               </p>
               <StarRating
@@ -460,8 +641,10 @@ export const BuyerOrders = () => {
 
             {/* Accuracy */}
             <div>
-              <Label className="text-base font-semibold">Accuracy</Label>
-              <p className="text-sm text-gray-600 mb-2">Did the product match the description?</p>
+              <Label className="text-sm md:text-base font-semibold">Accuracy</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">
+                Did the product match the description?
+              </p>
               <StarRating
                 value={ratings.accuracy}
                 onChange={(value) => setRatings({ ...ratings, accuracy: value })}
@@ -470,8 +653,10 @@ export const BuyerOrders = () => {
 
             {/* Communication */}
             <div>
-              <Label className="text-base font-semibold">Communication</Label>
-              <p className="text-sm text-gray-600 mb-2">How responsive and clear was the farmer?</p>
+              <Label className="text-sm md:text-base font-semibold">Communication</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">
+                How responsive and clear was the farmer?
+              </p>
               <StarRating
                 value={ratings.communication}
                 onChange={(value) => setRatings({ ...ratings, communication: value })}
@@ -480,8 +665,10 @@ export const BuyerOrders = () => {
 
             {/* Packaging */}
             <div>
-              <Label className="text-base font-semibold">Packaging</Label>
-              <p className="text-sm text-gray-600 mb-2">How well were the products packaged?</p>
+              <Label className="text-sm md:text-base font-semibold">Packaging</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">
+                How well were the products packaged?
+              </p>
               <StarRating
                 value={ratings.packaging}
                 onChange={(value) => setRatings({ ...ratings, packaging: value })}
@@ -490,8 +677,8 @@ export const BuyerOrders = () => {
 
             {/* Timeliness */}
             <div>
-              <Label className="text-base font-semibold">Timeliness</Label>
-              <p className="text-sm text-gray-600 mb-2">Was the delivery on time?</p>
+              <Label className="text-sm md:text-base font-semibold">Timeliness</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">Was the delivery on time?</p>
               <StarRating
                 value={ratings.timeliness}
                 onChange={(value) => setRatings({ ...ratings, timeliness: value })}
@@ -500,10 +687,12 @@ export const BuyerOrders = () => {
 
             {/* Comment */}
             <div>
-              <Label htmlFor="comment" className="text-base font-semibold">
+              <Label htmlFor="comment" className="text-sm md:text-base font-semibold">
                 Additional Comments (Optional)
               </Label>
-              <p className="text-sm text-gray-600 mb-2">Share your experience with others</p>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">
+                Share your experience with others
+              </p>
               <Textarea
                 id="comment"
                 placeholder="Write your review here..."
@@ -511,13 +700,14 @@ export const BuyerOrders = () => {
                 onChange={(e) => setComment(e.target.value)}
                 rows={4}
                 maxLength={500}
+                className="text-sm"
               />
               <p className="text-xs text-gray-500 mt-1">{comment.length}/500 characters</p>
             </div>
 
             {/* Average Rating Display */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm font-semibold text-gray-700 mb-2">Average Rating</p>
+            <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
+              <p className="text-xs md:text-sm font-semibold text-gray-700 mb-2">Average Rating</p>
               <div className="flex items-center gap-2">
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((star) => {
@@ -529,14 +719,14 @@ export const BuyerOrders = () => {
                     return (
                       <Star
                         key={star}
-                        className={`h-6 w-6 ${
+                        className={`h-5 w-5 md:h-6 md:w-6 ${
                           star <= avgRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
                         }`}
                       />
                     );
                   })}
                 </div>
-                <span className="text-lg font-bold">
+                <span className="text-base md:text-lg font-bold">
                   {(() => {
                     const ratedValues = Object.values(ratings).filter((r) => r > 0);
                     return ratedValues.length > 0
@@ -548,19 +738,19 @@ export const BuyerOrders = () => {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
             <Button
               variant="outline"
               onClick={() => setReviewDialogOpen(false)}
               disabled={submittingReview}
-              className="flex-1"
+              className="flex-1 text-sm md:text-base"
             >
               Cancel
             </Button>
             <Button
               onClick={submitReview}
               disabled={submittingReview || Object.values(ratings).some((r) => r === 0)}
-              className="flex-1"
+              className="flex-1 text-sm md:text-base"
               style={{ backgroundColor: COLORS.primary }}
             >
               {submittingReview ? 'Submitting...' : 'Submit Review'}

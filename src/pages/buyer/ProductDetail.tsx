@@ -151,7 +151,7 @@ export const ProductDetail = () => {
   const sortedFarmers = getSortedFarmers();
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 px-4">
+    <div className="max-w-6xl mx-auto space-y-4 md:space-y-6 px-4">
       <Button variant="outline" onClick={() => navigate('/buyer/marketplace')}>
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Marketplace
@@ -172,8 +172,8 @@ export const ProductDetail = () => {
       )}
 
       {/* Product Header Section */}
-      <div className="bg-white rounded-lg shadow-sm p-8">
-        <div className="flex flex-col md:flex-row gap-8 items-start">
+      <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 lg:p-8">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-8 items-start">
           {/* Product Image */}
           {product.images && product.images.length > 0 && (
             <div className="w-full md:w-1/3">
@@ -186,31 +186,31 @@ export const ProductDetail = () => {
           )}
 
           {/* Product Info */}
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 space-y-4 md:space-y-6">
             <div>
-              <h1 className="text-4xl font-bold mb-2">{product.name}</h1>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">{product.name}</h1>
               <p className="text-gray-600">{product.description}</p>
             </div>
 
             {/* Price Stats */}
-            <div className="flex gap-8 items-center">
+            <div className="flex gap-3 md:gap-6 lg:gap-8 items-center flex-wrap">
               <div>
-                <div className="text-sm text-gray-600">Lowest Price</div>
-                <div className="text-3xl font-bold text-green-600">
+                <div className="text-xs md:text-sm text-gray-600">Lowest Price</div>
+                <div className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">
                   ৳{stats?.minPrice || 0}
-                  <span className="text-base text-gray-500">/{product.unit}</span>
+                  <span className="text-sm md:text-base text-gray-500">/{product.unit}</span>
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600">Highest Price</div>
-                <div className="text-3xl font-bold text-orange-600">
+                <div className="text-xs md:text-sm text-gray-600">Highest Price</div>
+                <div className="text-xl md:text-2xl lg:text-3xl font-bold text-orange-600">
                   ৳{stats?.maxPrice || 0}
-                  <span className="text-base text-gray-500">/{product.unit}</span>
+                  <span className="text-sm md:text-base text-gray-500">/{product.unit}</span>
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600">Unit</div>
-                <div className="text-2xl font-semibold">1 {product.unit}</div>
+                <div className="text-xs md:text-sm text-gray-600">Unit</div>
+                <div className="text-lg md:text-xl lg:text-2xl font-semibold">1 {product.unit}</div>
               </div>
             </div>
           </div>
@@ -219,13 +219,15 @@ export const ProductDetail = () => {
 
       {/* Farmers List */}
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Available from {farmerProducts.length} Farmers</h2>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <h2 className="text-xl md:text-2xl font-bold">
+            Available from {farmerProducts.length} Farmers
+          </h2>
           <Select
             value={sortBy}
             onValueChange={(value) => setSortBy(value as 'price' | 'rating' | 'quantity')}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Sort By" />
             </SelectTrigger>
             <SelectContent>
@@ -255,8 +257,9 @@ export const ProductDetail = () => {
                     isSelected ? 'ring-2 ring-green-600' : ''
                   }`}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                  <CardContent className="p-4 md:p-6">
+                    {/* Desktop Layout */}
+                    <div className="hidden md:flex items-center justify-between">
                       {/* Farmer Avatar & Info */}
                       <div className="flex items-center gap-4 flex-1">
                         <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
@@ -323,8 +326,74 @@ export const ProductDetail = () => {
                       </div>
                     </div>
 
+                    {/* Mobile Layout */}
+                    <div className="md:hidden space-y-3">
+                      {/* Farmer Info */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                          <span className="text-lg font-semibold text-gray-600">
+                            {farmer.name.charAt(0)}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-bold truncate">{farmer.name}</h3>
+                          {farmer.location && (
+                            <div className="flex items-center gap-1 text-gray-600 text-xs truncate">
+                              <MapPin className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">
+                                {farmer.location.area}, {farmer.location.city}
+                              </span>
+                            </div>
+                          )}
+                          {farmer.rating !== undefined && (
+                            <div className="flex items-center gap-0.5 mt-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3 w-3 ${
+                                    i < Math.floor(farmer.rating || 0)
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Price & Unit */}
+                      <div className="flex items-center justify-between py-2 border-y">
+                        <div className="text-center flex-1">
+                          <div className="text-xs text-gray-600">Price</div>
+                          <div className="text-2xl font-bold" style={{ color: COLORS.primary }}>
+                            ৳{farmerProduct.price}
+                          </div>
+                          <div className="text-xs text-gray-500">per {product.unit}</div>
+                        </div>
+                        <div className="text-center flex-1 border-l">
+                          <div className="text-xs text-gray-600">Unit</div>
+                          <div className="text-lg font-semibold">1 {product.unit}</div>
+                        </div>
+                      </div>
+
+                      {/* Add to Cart Button */}
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFarmerProduct(farmerProduct);
+                        }}
+                        style={{ backgroundColor: COLORS.primary }}
+                        disabled={!isVerified}
+                        className="w-full"
+                      >
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Select This Farmer
+                      </Button>
+                    </div>
+
                     {/* Additional Info */}
-                    <div className="flex gap-4 mt-4 pt-4 border-t text-sm">
+                    <div className="flex gap-3 md:gap-4 mt-4 pt-4 border-t text-sm">
                       <div>
                         <span className="text-gray-600">Quality: </span>
                         <Badge variant="outline">{farmerProduct.quality}</Badge>
@@ -356,8 +425,9 @@ export const ProductDetail = () => {
       {/* Purchase Dialog */}
       {selectedFarmerProduct && (
         <Card className="sticky bottom-4 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between gap-6">
+          <CardContent className="p-4 md:p-6">
+            {/* Desktop Layout */}
+            <div className="hidden md:flex items-center justify-between gap-6">
               <div className="flex-1">
                 <div className="text-sm text-gray-600">Buying from</div>
                 <div className="text-xl font-bold">{selectedFarmerProduct.farmerId.name}</div>
@@ -398,6 +468,56 @@ export const ProductDetail = () => {
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Add to Cart
               </Button>
+            </div>
+
+            {/* Mobile Layout */}
+            <div className="md:hidden space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-gray-600">Buying from</div>
+                  <div className="text-base font-bold truncate">
+                    {selectedFarmerProduct.farmerId.name}
+                  </div>
+                  <div className="text-sm" style={{ color: COLORS.primary }}>
+                    ৳{selectedFarmerProduct.price}/{product.unit}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-600">Subtotal</div>
+                  <div className="text-xl font-bold" style={{ color: COLORS.primary }}>
+                    ৳{(selectedFarmerProduct.price * quantity).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Label className="text-xs">Quantity</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max={selectedFarmerProduct.availableQuantity}
+                    value={quantity}
+                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                    className="text-center"
+                  />
+                  <div className="text-xs text-gray-500 text-center mt-0.5">
+                    Max: {selectedFarmerProduct.availableQuantity}
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <Label className="text-xs opacity-0">.</Label>
+                  <Button
+                    onClick={handleAddToCart}
+                    style={{ backgroundColor: COLORS.primary }}
+                    disabled={!isVerified || selectedFarmerProduct.availableQuantity === 0}
+                    className="w-full"
+                  >
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Add to Cart
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -92,22 +92,6 @@ export const BuyerDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Buyer Dashboard</h1>
-          <p className="text-gray-600 mt-1">
-            Welcome back! Here's an overview of your orders and spending.
-          </p>
-        </div>
-        <Button
-          onClick={() => navigate('/buyer/marketplace')}
-          style={{ backgroundColor: COLORS.primary }}
-        >
-          Browse Products
-        </Button>
-      </div>
-
       {/* Total Spending Card */}
       <Card className="border-l-4" style={{ borderLeftColor: COLORS.primary }}>
         <CardHeader>

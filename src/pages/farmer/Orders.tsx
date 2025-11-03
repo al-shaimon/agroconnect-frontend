@@ -22,7 +22,10 @@ export const FarmerOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
-  const [verifyingPayment, setVerifyingPayment] = useState<string | null>(null);
+  const [verifyingPayment, setVerifyingPayment] = useState<{
+    orderId: string;
+    action: 'verify' | 'reject';
+  } | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
@@ -109,7 +112,7 @@ export const FarmerOrders = () => {
 
   const handlePaymentVerification = async (orderId: string, action: 'verify' | 'reject') => {
     try {
-      setVerifyingPayment(orderId);
+      setVerifyingPayment({ orderId, action });
       await farmerService.verifyPayment(orderId, action);
       toast.success(
         action === 'verify'
@@ -389,36 +392,40 @@ export const FarmerOrders = () => {
                             </span>
                           </p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <Button
                             onClick={() => handlePaymentVerification(order._id, 'verify')}
-                            disabled={verifyingPayment === order._id}
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                            disabled={verifyingPayment?.orderId === order._id}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm"
                           >
-                            {verifyingPayment === order._id ? (
+                            {verifyingPayment?.orderId === order._id &&
+                            verifyingPayment?.action === 'verify' ? (
                               <span className="flex items-center gap-2">
                                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                                 Verifying...
                               </span>
                             ) : (
                               <>
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Verify Payment
+                                <CheckCircle className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Verify Payment</span>
+                                <span className="sm:hidden">Verify</span>
                               </>
                             )}
                           </Button>
                           <Button
                             onClick={() => handlePaymentVerification(order._id, 'reject')}
-                            disabled={verifyingPayment === order._id}
+                            disabled={verifyingPayment?.orderId === order._id}
                             variant="destructive"
-                            className="flex-1"
+                            className="flex-1 text-sm"
                           >
-                            {verifyingPayment === order._id ? (
+                            {verifyingPayment?.orderId === order._id &&
+                            verifyingPayment?.action === 'reject' ? (
                               'Rejecting...'
                             ) : (
                               <>
-                                <XCircle className="h-4 w-4 mr-2" />
-                                Reject Payment
+                                <XCircle className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Reject Payment</span>
+                                <span className="sm:hidden">Reject</span>
                               </>
                             )}
                           </Button>
@@ -457,7 +464,9 @@ export const FarmerOrders = () => {
                   {/* Order Items */}
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-3">Order Items</h4>
-                    <div className="border rounded-lg overflow-hidden">
+
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block border rounded-lg overflow-hidden">
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
@@ -500,6 +509,43 @@ export const FarmerOrders = () => {
                           </tr>
                         </tfoot>
                       </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="md:hidden space-y-3">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="border rounded-lg p-3 bg-white">
+                          <div className="space-y-2">
+                            <p className="font-medium text-gray-900">{item.productName}</p>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <p className="text-gray-600">Quantity</p>
+                                <p className="font-medium">{item.quantity}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-gray-600">Price/Unit</p>
+                                <p className="font-medium">৳{item.pricePerUnit.toFixed(2)}</p>
+                              </div>
+                            </div>
+                            <div className="pt-2 border-t flex justify-between items-center">
+                              <span className="text-sm text-gray-600">Subtotal</span>
+                              <span className="font-semibold text-base">
+                                ৳{item.subtotal.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Total Amount */}
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-900">Total Amount</span>
+                          <span className="font-bold text-lg text-green-600">
+                            ৳{order.totalAmount.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -586,19 +632,19 @@ export const FarmerOrders = () => {
 
       {/* Review Dialog */}
       <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Rate the Buyer</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg md:text-xl">Rate the Buyer</DialogTitle>
+            <DialogDescription className="text-sm">
               Please rate your experience with the buyer for order #{selectedOrder?.orderId}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
+          <div className="space-y-4 md:space-y-6 py-3 md:py-4">
             {/* Payment Promptness */}
             <div>
-              <Label className="text-base font-semibold">Payment Promptness</Label>
-              <p className="text-sm text-gray-600 mb-2">Was the payment made on time?</p>
+              <Label className="text-sm md:text-base font-semibold">Payment Promptness</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">Was the payment made on time?</p>
               <StarRating
                 value={ratings.paymentPromptness}
                 onChange={(value) => setRatings({ ...ratings, paymentPromptness: value })}
@@ -607,8 +653,10 @@ export const FarmerOrders = () => {
 
             {/* Communication */}
             <div>
-              <Label className="text-base font-semibold">Communication</Label>
-              <p className="text-sm text-gray-600 mb-2">How clear and responsive was the buyer?</p>
+              <Label className="text-sm md:text-base font-semibold">Communication</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">
+                How clear and responsive was the buyer?
+              </p>
               <StarRating
                 value={ratings.communication}
                 onChange={(value) => setRatings({ ...ratings, communication: value })}
@@ -617,8 +665,10 @@ export const FarmerOrders = () => {
 
             {/* Professionalism */}
             <div>
-              <Label className="text-base font-semibold">Professionalism</Label>
-              <p className="text-sm text-gray-600 mb-2">How professional was the buyer?</p>
+              <Label className="text-sm md:text-base font-semibold">Professionalism</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">
+                How professional was the buyer?
+              </p>
               <StarRating
                 value={ratings.professionalism}
                 onChange={(value) => setRatings({ ...ratings, professionalism: value })}
@@ -627,8 +677,8 @@ export const FarmerOrders = () => {
 
             {/* Clarity */}
             <div>
-              <Label className="text-base font-semibold">Clarity</Label>
-              <p className="text-sm text-gray-600 mb-2">
+              <Label className="text-sm md:text-base font-semibold">Clarity</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">
                 Were the buyer's requirements clearly stated?
               </p>
               <StarRating
@@ -639,8 +689,8 @@ export const FarmerOrders = () => {
 
             {/* Respectfulness */}
             <div>
-              <Label className="text-base font-semibold">Respectfulness</Label>
-              <p className="text-sm text-gray-600 mb-2">How respectful was the buyer?</p>
+              <Label className="text-sm md:text-base font-semibold">Respectfulness</Label>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">How respectful was the buyer?</p>
               <StarRating
                 value={ratings.respectfulness}
                 onChange={(value) => setRatings({ ...ratings, respectfulness: value })}
@@ -649,10 +699,10 @@ export const FarmerOrders = () => {
 
             {/* Comment */}
             <div>
-              <Label htmlFor="comment" className="text-base font-semibold">
+              <Label htmlFor="comment" className="text-sm md:text-base font-semibold">
                 Additional Comments (Optional)
               </Label>
-              <p className="text-sm text-gray-600 mb-2">Share your experience</p>
+              <p className="text-xs md:text-sm text-gray-600 mb-2">Share your experience</p>
               <Textarea
                 id="comment"
                 placeholder="Write your review here..."
@@ -660,13 +710,14 @@ export const FarmerOrders = () => {
                 onChange={(e) => setComment(e.target.value)}
                 rows={4}
                 maxLength={500}
+                className="text-sm"
               />
               <p className="text-xs text-gray-500 mt-1">{comment.length}/500 characters</p>
             </div>
 
             {/* Average Rating Display */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm font-semibold text-gray-700 mb-2">Average Rating</p>
+            <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
+              <p className="text-xs md:text-sm font-semibold text-gray-700 mb-2">Average Rating</p>
               <div className="flex items-center gap-2">
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((star) => {
@@ -678,14 +729,14 @@ export const FarmerOrders = () => {
                     return (
                       <Star
                         key={star}
-                        className={`h-6 w-6 ${
+                        className={`h-5 w-5 md:h-6 md:w-6 ${
                           star <= avgRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
                         }`}
                       />
                     );
                   })}
                 </div>
-                <span className="text-lg font-bold">
+                <span className="text-base md:text-lg font-bold">
                   {(() => {
                     const ratedValues = Object.values(ratings).filter((r) => r > 0);
                     return ratedValues.length > 0
@@ -697,19 +748,19 @@ export const FarmerOrders = () => {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
             <Button
               variant="outline"
               onClick={() => setReviewDialogOpen(false)}
               disabled={submittingReview}
-              className="flex-1"
+              className="flex-1 text-sm md:text-base"
             >
               Cancel
             </Button>
             <Button
               onClick={submitReview}
               disabled={submittingReview || Object.values(ratings).some((r) => r === 0)}
-              className="flex-1"
+              className="flex-1 text-sm md:text-base"
               style={{ backgroundColor: COLORS.primary }}
             >
               {submittingReview ? 'Submitting...' : 'Submit Review'}

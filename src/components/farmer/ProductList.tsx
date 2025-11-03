@@ -251,107 +251,216 @@ export const ProductList = () => {
                 : 'No products found matching your search.'}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Image</TableHead>
-                    <TableHead>Product Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Quality</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredMyProducts.map((product) => {
-                    if (!product.globalProductId) return null;
-                    return (
-                      <TableRow key={product._id}>
-                        <TableCell>
-                          {product.globalProductId.images &&
-                          product.globalProductId.images.length > 0 ? (
-                            <img
-                              src={product.globalProductId.images[0]}
-                              alt={product.globalProductId.name}
-                              className="h-12 w-12 object-cover rounded"
-                            />
-                          ) : (
-                            <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center">
-                              <ImageIcon className="h-6 w-6 text-gray-400" />
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Image</TableHead>
+                      <TableHead>Product Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Quality</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredMyProducts.map((product) => {
+                      if (!product.globalProductId) return null;
+                      return (
+                        <TableRow key={product._id}>
+                          <TableCell>
+                            {product.globalProductId.images &&
+                            product.globalProductId.images.length > 0 ? (
+                              <img
+                                src={product.globalProductId.images[0]}
+                                alt={product.globalProductId.name}
+                                className="h-12 w-12 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center">
+                                <ImageIcon className="h-6 w-6 text-gray-400" />
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {product.globalProductId.name}
+                          </TableCell>
+                          <TableCell>{product.globalProductId.category}</TableCell>
+                          <TableCell>
+                            ৳{product.price}/{product.globalProductId.unit}
+                          </TableCell>
+                          <TableCell>
+                            {product.availableQuantity} {product.globalProductId.unit}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{product.quality}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={product.isAvailable ? 'default' : 'secondary'}
+                              style={
+                                product.isAvailable
+                                  ? { backgroundColor: COLORS.primary }
+                                  : undefined
+                              }
+                            >
+                              {product.isAvailable ? 'Available' : 'Unavailable'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleOpenDialog(product)}
+                                disabled={!isVerified}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDelete(product._id)}
+                                disabled={!isVerified}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
                             </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {product.globalProductId.name}
-                        </TableCell>
-                        <TableCell>{product.globalProductId.category}</TableCell>
-                        <TableCell>
-                          ৳{product.price}/{product.globalProductId.unit}
-                        </TableCell>
-                        <TableCell>
-                          {product.availableQuantity} {product.globalProductId.unit}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{product.quality}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={product.isAvailable ? 'default' : 'secondary'}
-                            style={
-                              product.isAvailable ? { backgroundColor: COLORS.primary } : undefined
-                            }
-                          >
-                            {product.isAvailable ? 'Available' : 'Unavailable'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleOpenDialog(product)}
-                              disabled={!isVerified}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDelete(product._id)}
-                              disabled={!isVerified}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-4">
+                {filteredMyProducts.map((product) => {
+                  if (!product.globalProductId) return null;
+                  return (
+                    <Card key={product._id} className="overflow-hidden">
+                      <CardContent className="p-4">
+                        <div className="flex gap-4">
+                          {/* Product Image */}
+                          <div className="flex-shrink-0">
+                            {product.globalProductId.images &&
+                            product.globalProductId.images.length > 0 ? (
+                              <img
+                                src={product.globalProductId.images[0]}
+                                alt={product.globalProductId.name}
+                                className="h-20 w-20 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="h-20 w-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <ImageIcon className="h-8 w-8 text-gray-400" />
+                              </div>
+                            )}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+
+                          {/* Product Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div>
+                                <h3 className="font-semibold text-base truncate">
+                                  {product.globalProductId.name}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {product.globalProductId.category}
+                                </p>
+                              </div>
+                              <Badge
+                                variant={product.isAvailable ? 'default' : 'secondary'}
+                                style={
+                                  product.isAvailable
+                                    ? { backgroundColor: COLORS.primary }
+                                    : undefined
+                                }
+                                className="shrink-0"
+                              >
+                                {product.isAvailable ? 'Available' : 'Unavailable'}
+                              </Badge>
+                            </div>
+
+                            <div className="space-y-1.5 text-sm">
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-600">Price:</span>
+                                <span className="font-semibold">
+                                  ৳{product.price}/{product.globalProductId.unit}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-600">Quantity:</span>
+                                <span className="font-medium">
+                                  {product.availableQuantity} {product.globalProductId.unit}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-600">Quality:</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {product.quality}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-2 mt-3">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleOpenDialog(product)}
+                                disabled={!isVerified}
+                                className="flex-1"
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDelete(product._id)}
+                                disabled={!isVerified}
+                                className="flex-1"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1 text-red-500" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
 
       {/* Add/Edit Product Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
+            <DialogTitle className="text-lg md:text-xl">
+              {editingProduct ? 'Edit Product' : 'Add Product'}
+            </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="product">Select Product *</Label>
+              <Label htmlFor="product" className="text-sm md:text-base">
+                Select Product *
+              </Label>
               <Select
                 value={selectedGlobalProduct}
                 onValueChange={setSelectedGlobalProduct}
                 disabled={!!editingProduct}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Choose from admin catalog" />
                 </SelectTrigger>
                 <SelectContent>
@@ -369,15 +478,17 @@ export const ProductList = () => {
                 </SelectContent>
               </Select>
               {!editingProduct && availableGlobalProducts.length === 0 && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs md:text-sm text-muted-foreground">
                   All available products have been added. Contact admin to add more products.
                 </p>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Price (৳) *</Label>
+                <Label htmlFor="price" className="text-sm md:text-base">
+                  Price (৳) *
+                </Label>
                 <Input
                   id="price"
                   type="number"
@@ -386,14 +497,15 @@ export const ProductList = () => {
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder="Enter price per unit"
+                  className="h-11"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="quantity">
+                <Label htmlFor="quantity" className="text-sm md:text-base">
                   Available Quantity *
                   {selectedGlobalProduct && (
-                    <span className="text-sm text-gray-500 ml-2">
+                    <span className="text-xs md:text-sm text-gray-500 ml-1 md:ml-2">
                       (in {globalProducts.find((p) => p._id === selectedGlobalProduct)?.unit})
                     </span>
                   )}
@@ -412,19 +524,22 @@ export const ProductList = () => {
                         }`
                       : 'Enter quantity'
                   }
+                  className="h-11"
                   required
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-2">
-                <Label htmlFor="quality">Quality</Label>
+                <Label htmlFor="quality" className="text-sm md:text-base">
+                  Quality
+                </Label>
                 <Select
                   value={formData.quality}
                   onValueChange={(value) => setFormData({ ...formData, quality: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -437,24 +552,33 @@ export const ProductList = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="harvestDate">Harvest Date (Optional)</Label>
+                <Label htmlFor="harvestDate" className="text-sm md:text-base">
+                  Harvest Date (Optional)
+                </Label>
                 <Input
                   id="harvestDate"
                   type="date"
                   value={formData.harvestDate}
                   onChange={(e) => setFormData({ ...formData, harvestDate: e.target.value })}
+                  className="h-11"
                 />
               </div>
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCloseDialog}>
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCloseDialog}
+                className="w-full sm:w-auto order-2 sm:order-1"
+              >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={submitting}
                 style={{ backgroundColor: COLORS.primary }}
+                className="w-full sm:w-auto order-1 sm:order-2"
               >
                 {submitting ? 'Saving...' : editingProduct ? 'Update' : 'Add Product'}
               </Button>

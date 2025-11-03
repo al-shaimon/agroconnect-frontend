@@ -245,85 +245,199 @@ export const AdminUsers = () => {
               <p>No users found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4">User</th>
-                    <th className="text-left py-3 px-4">Contact</th>
-                    <th className="text-left py-3 px-4">Role</th>
-                    <th className="text-left py-3 px-4">Status</th>
-                    <th className="text-left py-3 px-4">Joined</th>
-                    <th className="text-right py-3 px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr key={user._id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4">User</th>
+                      <th className="text-left py-3 px-4">Contact</th>
+                      <th className="text-left py-3 px-4">Role</th>
+                      <th className="text-left py-3 px-4">Status</th>
+                      <th className="text-left py-3 px-4">Joined</th>
+                      <th className="text-right py-3 px-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((user) => (
+                      <tr key={user._id} className="border-b hover:bg-gray-50">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`h-10 w-10 rounded-full ${
+                                user.role === 'farmer'
+                                  ? 'bg-green-100'
+                                  : user.role === 'buyer'
+                                  ? 'bg-blue-100'
+                                  : 'bg-purple-100'
+                              } flex items-center justify-center`}
+                            >
+                              <span className="font-semibold">
+                                {user.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium">{user.name}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <p className="text-sm">{user.email}</p>
+                          <p className="text-sm text-gray-600">{user.phone}</p>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge
+                            className={`capitalize ${
+                              user.role === 'farmer'
+                                ? 'bg-green-100 text-green-800'
+                                : user.role === 'buyer'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-purple-100 text-purple-800'
+                            }`}
+                          >
+                            {user.role}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="space-y-1">
+                            {user.isVerified ? (
+                              <Badge className="bg-green-100 text-green-800 flex items-center gap-1 w-fit">
+                                <CheckCircle className="h-3 w-3" />
+                                Verified
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1 w-fit">
+                                <XCircle className="h-3 w-3" />
+                                Unverified
+                              </Badge>
+                            )}
+                            {user.isActive ? (
+                              <Badge className="bg-blue-100 text-blue-800 w-fit">Active</Badge>
+                            ) : (
+                              <Badge className="bg-gray-100 text-gray-800 w-fit">Inactive</Badge>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {formatDate(user.createdAt)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => viewUserDetails(user)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {user.role !== 'admin' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setUserToDelete(user)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {filteredUsers.map((user) => (
+                  <Card
+                    key={user._id}
+                    className="border-l-4"
+                    style={{
+                      borderLeftColor:
+                        user.role === 'farmer'
+                          ? '#10b981'
+                          : user.role === 'buyer'
+                          ? '#3b82f6'
+                          : '#a855f7',
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        {/* User Header */}
                         <div className="flex items-center gap-3">
                           <div
-                            className={`h-10 w-10 rounded-full ${
+                            className={`h-12 w-12 rounded-full ${
                               user.role === 'farmer'
                                 ? 'bg-green-100'
                                 : user.role === 'buyer'
                                 ? 'bg-blue-100'
                                 : 'bg-purple-100'
-                            } flex items-center justify-center`}
+                            } flex items-center justify-center flex-shrink-0`}
                           >
-                            <span className="font-semibold">
+                            <span className="font-semibold text-lg">
                               {user.name.charAt(0).toUpperCase()}
                             </span>
                           </div>
-                          <div>
-                            <p className="font-medium">{user.name}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-base truncate">{user.name}</p>
+                            <Badge
+                              className={`capitalize text-xs mt-1 ${
+                                user.role === 'farmer'
+                                  ? 'bg-green-100 text-green-800'
+                                  : user.role === 'buyer'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-purple-100 text-purple-800'
+                              }`}
+                            >
+                              {user.role}
+                            </Badge>
                           </div>
                         </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <p className="text-sm">{user.email}</p>
-                        <p className="text-sm text-gray-600">{user.phone}</p>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge
-                          className={`capitalize ${
-                            user.role === 'farmer'
-                              ? 'bg-green-100 text-green-800'
-                              : user.role === 'buyer'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-purple-100 text-purple-800'
-                          }`}
-                        >
-                          {user.role}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="space-y-1">
+
+                        {/* Contact Info */}
+                        <div className="space-y-1.5 text-sm">
+                          <p className="text-gray-700 truncate">{user.email}</p>
+                          <p className="text-gray-600">{user.phone}</p>
+                        </div>
+
+                        {/* Status Badges */}
+                        <div className="flex flex-wrap gap-2">
                           {user.isVerified ? (
-                            <Badge className="bg-green-100 text-green-800 flex items-center gap-1 w-fit">
+                            <Badge className="bg-green-100 text-green-800 flex items-center gap-1 text-xs">
                               <CheckCircle className="h-3 w-3" />
                               Verified
                             </Badge>
                           ) : (
-                            <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1 w-fit">
+                            <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1 text-xs">
                               <XCircle className="h-3 w-3" />
                               Unverified
                             </Badge>
                           )}
                           {user.isActive ? (
-                            <Badge className="bg-blue-100 text-blue-800 w-fit">Active</Badge>
+                            <Badge className="bg-blue-100 text-blue-800 text-xs">Active</Badge>
                           ) : (
-                            <Badge className="bg-gray-100 text-gray-800 w-fit">Inactive</Badge>
+                            <Badge className="bg-gray-100 text-gray-800 text-xs">Inactive</Badge>
                           )}
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
-                        {formatDate(user.createdAt)}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button size="sm" variant="outline" onClick={() => viewUserDetails(user)}>
-                            <Eye className="h-4 w-4" />
+
+                        {/* Joined Date */}
+                        <p className="text-xs text-gray-500">
+                          Joined: {formatDate(user.createdAt)}
+                        </p>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 pt-2 border-t">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => viewUserDetails(user)}
+                            className="flex-1"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
                           </Button>
                           {user.role !== 'admin' && (
                             <Button
@@ -336,12 +450,12 @@ export const AdminUsers = () => {
                             </Button>
                           )}
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

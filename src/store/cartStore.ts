@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { CartItem, Product, DeliverySlotInfo } from '../types';
 
 interface CartState {
@@ -12,66 +13,74 @@ interface CartState {
   getTotalItems: () => number;
 }
 
-export const useCartStore = create<CartState>((set, get) => ({
-  items: [],
+export const useCartStore = create<CartState>()(
+  persist(
+    (set, get) => ({
+      items: [],
 
-  addItem: (product, quantity, slot) => {
-    const { items } = get();
-    const existingItem = items.find((item) => item.product._id === product._id);
+      addItem: (product, quantity, slot) => {
+        const { items } = get();
+        const existingItem = items.find((item) => item.product._id === product._id);
 
-    if (existingItem) {
-      set({
-        items: items.map((item) =>
-          item.product._id === product._id
-            ? {
-                ...item,
-                quantity: item.quantity + quantity,
-                selectedSlot: slot || item.selectedSlot,
-              }
-            : item
-        ),
-      });
-    } else {
-      set({ items: [...items, { product, quantity, selectedSlot: slot }] });
+        if (existingItem) {
+          set({
+            items: items.map((item) =>
+              item.product._id === product._id
+                ? {
+                    ...item,
+                    quantity: item.quantity + quantity,
+                    selectedSlot: slot || item.selectedSlot,
+                  }
+                : item
+            ),
+          });
+        } else {
+          set({ items: [...items, { product, quantity, selectedSlot: slot }] });
+        }
+      },
+
+      removeItem: (productId) => {
+        set({ items: get().items.filter((item) => item.product._id !== productId) });
+      },
+
+      updateQuantity: (productId, quantity) => {
+        if (quantity <= 0) {
+          get().removeItem(productId);
+          return;
+        }
+        set({
+          items: get().items.map((item) =>
+            item.product._id === productId ? { ...item, quantity } : item
+          ),
+        });
+      },
+
+      updateSlot: (productId, slot) => {
+        set({
+          items: get().items.map((item) =>
+            item.product._id === productId ? { ...item, selectedSlot: slot } : item
+          ),
+        });
+      },
+
+      clearCart: () => {
+        set({ items: [] });
+      },
+
+      getTotalAmount: () => {
+        return get().items.reduce(
+          (total, item) => total + (item.product.price || 0) * item.quantity,
+          0
+        );
+      },
+
+      getTotalItems: () => {
+        return get().items.reduce((total, item) => total + item.quantity, 0);
+      },
+    }),
+    {
+      name: 'agroconnect-cart-storage',
+      storage: createJSONStorage(() => localStorage),
     }
-  },
-
-  removeItem: (productId) => {
-    set({ items: get().items.filter((item) => item.product._id !== productId) });
-  },
-
-  updateQuantity: (productId, quantity) => {
-    if (quantity <= 0) {
-      get().removeItem(productId);
-      return;
-    }
-    set({
-      items: get().items.map((item) =>
-        item.product._id === productId ? { ...item, quantity } : item
-      ),
-    });
-  },
-
-  updateSlot: (productId, slot) => {
-    set({
-      items: get().items.map((item) =>
-        item.product._id === productId ? { ...item, selectedSlot: slot } : item
-      ),
-    });
-  },
-
-  clearCart: () => {
-    set({ items: [] });
-  },
-
-  getTotalAmount: () => {
-    return get().items.reduce(
-      (total, item) => total + (item.product.price || 0) * item.quantity,
-      0
-    );
-  },
-
-  getTotalItems: () => {
-    return get().items.reduce((total, item) => total + item.quantity, 0);
-  },
-}));
+  )
+);

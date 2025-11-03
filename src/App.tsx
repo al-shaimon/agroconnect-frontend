@@ -68,16 +68,23 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+    <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
+      <Navbar
+        onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        isDashboardRoute={isDashboardRoute}
+      />
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-x-hidden">
         {isAuthenticated && isDashboardRoute && (
           <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         )}
 
-        <main className={`flex-1 ${isAuthenticated && isDashboardRoute ? 'lg:ml-64' : ''}`}>
-          <div className="container mx-auto px-4 py-8">
+        <main
+          className={`flex-1 overflow-x-hidden ${
+            isAuthenticated && isDashboardRoute ? 'lg:ml-64' : ''
+          }`}
+        >
+          <div className="container mx-auto px-4 py-8 max-w-full">
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
