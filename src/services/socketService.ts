@@ -1,10 +1,9 @@
-import { io, Socket } from 'socket.io-client';
-import { SOCKET_URL } from '../constants/theme';
+import { Socket } from 'socket.io-client';
 
 class SocketService {
   private socket: Socket | null = null;
 
-  connect(userId: string) {
+  connect(_userId: string) {
     // Socket.IO disabled for Vercel deployment (serverless doesn't support WebSockets)
     // Use polling for notifications instead, or deploy backend to a platform that supports WebSockets
     // console.log('⚠️ Socket.IO is disabled in production (Vercel limitation)');
