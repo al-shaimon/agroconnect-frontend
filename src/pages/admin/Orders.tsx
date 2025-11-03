@@ -256,80 +256,165 @@ export const AdminOrders = () => {
               <p>No orders found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4">Order ID</th>
-                    <th className="text-left py-3 px-4">Buyer</th>
-                    <th className="text-left py-3 px-4">Farmer</th>
-                    <th className="text-left py-3 px-4">Items</th>
-                    <th className="text-left py-3 px-4">Amount</th>
-                    <th className="text-left py-3 px-4">Status</th>
-                    <th className="text-left py-3 px-4">Date</th>
-                    <th className="text-right py-3 px-4">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrders.map((order) => (
-                    <tr key={order._id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <span className="font-mono text-sm font-medium">{order.orderId}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div>
-                          <p className="font-medium">
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4">Order ID</th>
+                      <th className="text-left py-3 px-4">Buyer</th>
+                      <th className="text-left py-3 px-4">Farmer</th>
+                      <th className="text-left py-3 px-4">Items</th>
+                      <th className="text-left py-3 px-4">Amount</th>
+                      <th className="text-left py-3 px-4">Status</th>
+                      <th className="text-left py-3 px-4">Date</th>
+                      <th className="text-right py-3 px-4">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOrders.map((order) => (
+                      <tr key={order._id} className="border-b hover:bg-gray-50">
+                        <td className="py-3 px-4">
+                          <span className="font-mono text-sm font-medium">{order.orderId}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium">
+                              {order.buyerId && typeof order.buyerId === 'object'
+                                ? order.buyerId.name
+                                : 'N/A'}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {order.buyerId && typeof order.buyerId === 'object'
+                                ? order.buyerId.email
+                                : ''}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium">
+                              {order.farmerId && typeof order.farmerId === 'object'
+                                ? order.farmerId.name
+                                : 'N/A'}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {order.farmerId && typeof order.farmerId === 'object'
+                                ? order.farmerId.email
+                                : ''}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="font-semibold">{order.items?.length || 0}</span> item(s)
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="font-semibold">
+                            ৳{order.totalAmount?.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">{getStatusBadge(order.status)}</td>
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {formatDate(order.createdAt)}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => viewOrderDetails(order._id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {filteredOrders.map((order) => (
+                  <Card key={order._id} className="border-l-4 border-l-blue-500">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        {/* Order Header */}
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-mono text-sm font-semibold text-gray-700">
+                              {order.orderId}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {formatDate(order.createdAt)}
+                            </p>
+                          </div>
+                          {getStatusBadge(order.status)}
+                        </div>
+
+                        {/* Buyer Info */}
+                        <div className="bg-blue-50 rounded p-3">
+                          <p className="text-xs text-blue-600 font-semibold mb-1">BUYER</p>
+                          <p className="font-medium text-sm">
                             {order.buyerId && typeof order.buyerId === 'object'
                               ? order.buyerId.name
                               : 'N/A'}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs text-gray-600 truncate">
                             {order.buyerId && typeof order.buyerId === 'object'
                               ? order.buyerId.email
                               : ''}
                           </p>
                         </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div>
-                          <p className="font-medium">
+
+                        {/* Farmer Info */}
+                        <div className="bg-green-50 rounded p-3">
+                          <p className="text-xs text-green-600 font-semibold mb-1">FARMER</p>
+                          <p className="font-medium text-sm">
                             {order.farmerId && typeof order.farmerId === 'object'
                               ? order.farmerId.name
                               : 'N/A'}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs text-gray-600 truncate">
                             {order.farmerId && typeof order.farmerId === 'object'
                               ? order.farmerId.email
                               : ''}
                           </p>
                         </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="font-semibold">{order.items?.length || 0}</span> item(s)
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="font-semibold">
-                          ৳{order.totalAmount?.toLocaleString()}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">{getStatusBadge(order.status)}</td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
-                        {formatDate(order.createdAt)}
-                      </td>
-                      <td className="py-3 px-4 text-right">
+
+                        {/* Order Summary */}
+                        <div className="flex justify-between items-center py-2 border-t border-b">
+                          <div>
+                            <p className="text-xs text-gray-500">Items</p>
+                            <p className="font-medium">
+                              <span className="font-semibold">{order.items?.length || 0}</span>{' '}
+                              item(s)
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Total Amount</p>
+                            <p className="font-semibold text-lg text-green-600">
+                              ৳{order.totalAmount?.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Action Button */}
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => viewOrderDetails(order._id)}
+                          className="w-full"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Order Details
                         </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

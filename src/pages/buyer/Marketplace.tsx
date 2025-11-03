@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buyerService } from '../../services/buyerService';
-import { useCartStore } from '../../store/cartStore';
+// import { useCartStore } from '../../store/cartStore';
 import { useAuth } from '../../hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
@@ -16,23 +16,14 @@ import {
   SelectValue,
 } from '../../components/ui/select';
 import { COLORS, PRODUCT_CATEGORIES } from '../../constants/theme';
-import {
-  Search,
-  ShoppingCart,
-  Filter,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  AlertCircle,
-  Package,
-} from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight, AlertCircle, Package } from 'lucide-react';
 import type { Product } from '../../types';
 import { toast } from 'react-toastify';
 
 export const Marketplace = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const cartItemCount = useCartStore((state) => state.getTotalItems());
+  // const cartItemCount = useCartStore((state) => state.getTotalItems());
 
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -54,7 +45,17 @@ export const Marketplace = () => {
     try {
       setIsLoading(true);
       console.log('Fetching products...');
-      const response = await buyerService.getProducts();
+
+      // Build query parameters
+      const params: any = {};
+      if (selectedCategory && selectedCategory !== 'all') params.category = selectedCategory;
+      if (selectedQuality && selectedQuality !== 'all') params.quality = selectedQuality;
+      if (priceRange.min) params.minPrice = parseFloat(priceRange.min);
+      if (priceRange.max) params.maxPrice = parseFloat(priceRange.max);
+      if (searchTerm) params.search = searchTerm;
+      if (sortBy) params.sortBy = sortBy;
+
+      const response = await buyerService.getProducts(params);
       console.log('Products response:', response);
       if (response.success && response.data) {
         console.log('Setting products:', response.data.length);
@@ -77,61 +78,14 @@ export const Marketplace = () => {
   useEffect(() => {
     console.log('Marketplace mounted, fetching products');
     fetchProducts();
-  }, []);
+  }, [selectedCategory, selectedQuality, priceRange, searchTerm, sortBy]);
 
-  // Filter and sort products
+  // Filter and sort products - now handled by backend, just use the data directly
   useEffect(() => {
-    console.log('Filtering products, total:', products.length);
-    let result = [...products];
-
-    // Filter by search term
-    if (searchTerm) {
-      result = result.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by category
-    if (selectedCategory && selectedCategory !== 'all') {
-      result = result.filter((product) => product.category === selectedCategory);
-    }
-
-    // Filter by quality
-    if (selectedQuality && selectedQuality !== 'all') {
-      result = result.filter((product) => product.quality === selectedQuality);
-    }
-
-    // Filter by price range (using minPrice and maxPrice from global products)
-    if (priceRange.min) {
-      const minPrice = parseFloat(priceRange.min);
-      result = result.filter((product) => product.minPrice && product.minPrice >= minPrice);
-    }
-    if (priceRange.max) {
-      const maxPrice = parseFloat(priceRange.max);
-      result = result.filter((product) => product.maxPrice && product.maxPrice <= maxPrice);
-    }
-
-    // Sort products
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return (a.minPrice || 0) - (b.minPrice || 0);
-        case 'price-high':
-          return (b.maxPrice || 0) - (a.maxPrice || 0);
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'date':
-        default:
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-      }
-    });
-
-    console.log('Filtered products:', result.length);
-    setFilteredProducts(result);
-    setCurrentPage(1);
-  }, [products, searchTerm, selectedCategory, selectedQuality, sortBy, priceRange]);
+    console.log('Setting filtered products:', products.length);
+    setFilteredProducts(products);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [products]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -158,37 +112,9 @@ export const Marketplace = () => {
     isLoading
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading products...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Marketplace</h1>
-          <p className="text-gray-600 mt-1">Browse fresh products from local farmers</p>
-        </div>
-        <Button onClick={() => navigate('/buyer/cart')} variant="outline" className="relative">
-          <ShoppingCart className="h-5 w-5 mr-2" />
-          Cart
-          {cartItemCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              {cartItemCount}
-            </span>
-          )}
-        </Button>
-      </div>
-
-      {/* Verification Alert */}
+      {/* Alert */}
       {!isVerified && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -202,39 +128,69 @@ export const Marketplace = () => {
         </Alert>
       )}
 
-      {/* Search and Filter Bar */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            {/* Search and Mobile Filter Toggle */}
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search products by name or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden"
-              >
+      {/* Sleek Search Bar */}
+      <div className="relative">
+        <div className="flex gap-3 items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input
+              placeholder="Search fresh products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-12 h-11 text-base border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 bg-white shadow-md rounded-2xl transition-all"
+            />
+          </div>
+
+          {/* Filter Toggle Button */}
+          <Button
+            variant={showFilters ? 'default' : 'outline'}
+            onClick={() => setShowFilters(!showFilters)}
+            className="h-10 px-5 rounded-2xl shadow-md transition-all"
+            style={showFilters ? { backgroundColor: COLORS.primary } : {}}
+          >
+            <Filter className="h-5 w-5 md:mr-2" />
+            <span className="hidden md:inline">Filters</span>
+          </Button>
+
+          {/* Cart Button */}
+          {/* <Button
+            onClick={() => navigate('/buyer/cart')}
+            className="h-14 px-5 rounded-2xl shadow-md relative hidden sm:flex"
+            style={{ backgroundColor: COLORS.primary }}
+          >
+            <ShoppingCart className="h-5 w-5 md:mr-2" />
+            <span className="hidden md:inline">Cart</span>
+            {cartItemCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg">
+                {cartItemCount}
+              </span>
+            )}
+          </Button> */}
+        </div>
+
+        {/* Collapsible Filter Panel */}
+        {showFilters && (
+          <div className="mt-4 bg-white rounded-2xl shadow-lg border border-gray-100 p-5 animate-in slide-in-from-top-5 duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Filter className="h-4 w-4" />
+                Refine Your Search
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-sm text-gray-500 hover:text-red-600"
+              >
+                Reset
               </Button>
             </div>
 
-            {/* Filters */}
-            <div
-              className={`grid grid-cols-1 md:grid-cols-5 gap-4 ${
-                showFilters ? '' : 'hidden md:grid'
-              }`}
-            >
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Category */}
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Category" />
+                <SelectTrigger className="h-11 w-full md:w-[180px] rounded-xl">
+                  <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
@@ -246,9 +202,10 @@ export const Marketplace = () => {
                 </SelectContent>
               </Select>
 
+              {/* Quality */}
               <Select value={selectedQuality} onValueChange={setSelectedQuality}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Quality" />
+                <SelectTrigger className="h-11 w-full md:w-[140px] rounded-xl">
+                  <SelectValue placeholder="All Quality" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Quality</SelectItem>
@@ -258,88 +215,117 @@ export const Marketplace = () => {
                 </SelectContent>
               </Select>
 
+              {/* Min Price */}
               <Input
                 type="number"
-                placeholder="Min Price"
+                placeholder="Min ৳"
                 value={priceRange.min}
                 onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                className="h-11 w-full md:w-[110px] rounded-xl px-3"
               />
 
+              {/* Max Price */}
               <Input
                 type="number"
-                placeholder="Max Price"
+                placeholder="Max ৳"
                 value={priceRange.max}
                 onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                className="h-11 w-full md:w-[110px] rounded-xl px-3"
               />
 
+              {/* Sort By */}
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sort By" />
+                <SelectTrigger className="h-11 w-full md:w-[160px] rounded-xl">
+                  <SelectValue placeholder="Latest" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="date">Latest</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="price-low">Price: Low → High</SelectItem>
+                  <SelectItem value="price-high">Price: High → Low</SelectItem>
                   <SelectItem value="name">Name (A-Z)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Active Filters */}
-            {(searchTerm ||
-              selectedCategory ||
-              selectedQuality ||
+            {/* Active Filter Pills */}
+            {/* {(searchTerm ||
+              selectedCategory !== 'all' ||
+              selectedQuality !== 'all' ||
               priceRange.min ||
               priceRange.max) && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-gray-600">Active filters:</span>
+              <div className="flex items-center gap-2 flex-wrap mt-4 pt-4 border-t">
                 {searchTerm && (
-                  <Badge variant="secondary" className="gap-1">
-                    Search: {searchTerm}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchTerm('')} />
+                  <Badge className="gap-1.5 rounded-full px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200">
+                    {searchTerm.substring(0, 15)}
+                    {searchTerm.length > 15 && '...'}
+                    <X
+                      className="h-3.5 w-3.5 cursor-pointer hover:text-red-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSearchTerm('');
+                      }}
+                    />
                   </Badge>
                 )}
                 {selectedCategory && selectedCategory !== 'all' && (
-                  <Badge variant="secondary" className="gap-1">
+                  <Badge className="gap-1.5 rounded-full px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200">
                     {selectedCategory}
                     <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => setSelectedCategory('all')}
+                      className="h-3.5 w-3.5 cursor-pointer hover:text-red-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCategory('all');
+                      }}
                     />
                   </Badge>
                 )}
                 {selectedQuality && selectedQuality !== 'all' && (
-                  <Badge variant="secondary" className="gap-1">
+                  <Badge className="gap-1.5 rounded-full px-3 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200">
                     {selectedQuality}
                     <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => setSelectedQuality('all')}
+                      className="h-3.5 w-3.5 cursor-pointer hover:text-red-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedQuality('all');
+                      }}
                     />
                   </Badge>
                 )}
                 {(priceRange.min || priceRange.max) && (
-                  <Badge variant="secondary" className="gap-1">
+                  <Badge className="gap-1.5 rounded-full px-3 py-1 bg-orange-100 text-orange-700 hover:bg-orange-200">
                     ৳{priceRange.min || '0'} - ৳{priceRange.max || '∞'}
                     <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => setPriceRange({ min: '', max: '' })}
+                      className="h-3.5 w-3.5 cursor-pointer hover:text-red-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPriceRange({ min: '', max: '' });
+                      }}
                     />
                   </Badge>
                 )}
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs">
-                  Clear All
-                </Button>
               </div>
-            )}
+            )} */}
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
 
       {/* Results Summary */}
-      <div className="flex items-center justify-between text-sm text-gray-600">
-        <span>{isLoading ? 'Loading...' : `${filteredProducts.length} products found`}</span>
+      <div className="flex items-center justify-between px-1">
+        <span className="text-sm font-medium text-gray-700">
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <div className="h-4 w-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+              Loading...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-gray-400" />
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+            </span>
+          )}
+        </span>
         {totalPages > 1 && (
-          <span>
+          <span className="text-sm text-gray-500">
             Page {currentPage} of {totalPages}
           </span>
         )}

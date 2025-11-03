@@ -16,9 +16,10 @@ import { useState } from 'react';
 
 interface NavbarProps {
   onMenuClick?: () => void;
+  isDashboardRoute?: boolean;
 }
 
-export const Navbar = ({ onMenuClick }: NavbarProps) => {
+export const Navbar = ({ onMenuClick, isDashboardRoute = false }: NavbarProps) => {
   const { user, isAuthenticated, logout, isBuyer } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,6 +53,16 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
     }
   };
 
+  const handleMobileMenuClick = () => {
+    if (isDashboardRoute && onMenuClick) {
+      // On dashboard routes, toggle sidebar
+      onMenuClick();
+    } else {
+      // On public routes, toggle mobile menu
+      setMobileMenuOpen(!mobileMenuOpen);
+    }
+  };
+
   return (
     <>
       <nav
@@ -63,8 +74,17 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
             {/* Left side */}
             <div className="flex items-center gap-4">
               {isAuthenticated && (
-                <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
-                  <Menu className="h-5 w-5" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleMobileMenuClick}
+                  className="lg:hidden"
+                >
+                  {mobileMenuOpen && !isDashboardRoute ? (
+                    <X className="h-5 w-5" />
+                  ) : (
+                    <Menu className="h-5 w-5" />
+                  )}
                 </Button>
               )}
               {!isAuthenticated && (
@@ -347,6 +367,123 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                   }}
                 >
                   Register as Driver
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Menu for Authenticated Users on Public Pages */}
+      {mobileMenuOpen && isAuthenticated && !isDashboardRoute && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-white pt-16">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-col space-y-4">
+              <Link
+                to="/"
+                className={`text-lg font-medium py-2 px-4 rounded transition-colors ${
+                  isActivePath('/')
+                    ? 'bg-green-50 text-green-700'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link
+                to="/about"
+                className={`text-lg font-medium py-2 px-4 rounded transition-colors ${
+                  isActivePath('/about')
+                    ? 'bg-green-50 text-green-700'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                About Us
+              </Link>
+
+              <div className="space-y-2">
+                <div className="text-lg font-medium py-2 px-4 text-gray-900">Solutions</div>
+                <Link
+                  to="/solutions/farmers"
+                  className="text-base py-2 px-8 block text-gray-700 hover:bg-gray-50 rounded"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  For Farmers
+                </Link>
+                <Link
+                  to="/solutions/consumers"
+                  className="text-base py-2 px-8 block text-gray-700 hover:bg-gray-50 rounded"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  For Consumers
+                </Link>
+                <Link
+                  to="/solutions/supply-chain"
+                  className="text-base py-2 px-8 block text-gray-700 hover:bg-gray-50 rounded"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Supply Chain
+                </Link>
+              </div>
+
+              <Link
+                to="/blog"
+                className={`text-lg font-medium py-2 px-4 rounded transition-colors ${
+                  isActivePath('/blog')
+                    ? 'bg-green-50 text-green-700'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Blog
+              </Link>
+
+              <div className="pt-4 border-t space-y-3">
+                <Button
+                  className="w-full"
+                  style={{ backgroundColor: COLORS.primary }}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate(getDashboardLink());
+                  }}
+                >
+                  Go to Dashboard
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate('/profile');
+                  }}
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </Button>
+                {isBuyer() && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate('/buyer/cart');
+                    }}
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Cart {totalItems > 0 && `(${totalItems})`}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
                 </Button>
               </div>
             </div>

@@ -6,14 +6,17 @@ import { blogs } from '../data/blogs';
 
 export default function Blog() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-bold" style={{ color: COLORS.primary }}>
+        <h1
+          className="text-2xl md:text-3xl lg:text-4xl font-bold"
+          style={{ color: COLORS.primary }}
+        >
           Our Blog
         </h1>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
         {blogs.map((b) => (
           <Card key={b.id} className="overflow-hidden hover:shadow-lg transition-shadow p-0">
             <img src={b.image} alt={b.title} className="h-48 w-full object-cover" />
