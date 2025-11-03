@@ -5,7 +5,7 @@ import { Badge } from '../ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { ScrollArea } from '../ui/scroll-area';
 import { notificationService } from '../../services/notificationService';
-import { useSocket } from '../../hooks/useSocket';
+import { pollingService } from '../../services/pollingService';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import type { Notification } from '../../types';
@@ -16,7 +16,6 @@ import { formatDistanceToNow } from 'date-fns';
 export const NotificationBell = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { on, off } = useSocket();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -35,19 +34,23 @@ export const NotificationBell = () => {
   useEffect(() => {
     fetchNotifications();
 
-    const handleNewNotification = (...args: unknown[]) => {
-      const notification = args[0] as Notification;
-      setNotifications((prev) => [notification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-      toast.info(notification.message);
-    };
+    // Subscribe to polling updates
+    const unsubscribe = pollingService.subscribe((data) => {
+      const previousCount = notifications.length;
+      setNotifications(data.notifications);
+      setUnreadCount(data.unreadCount);
 
-    on('notification', handleNewNotification);
+      // Show toast for new notifications
+      if (data.notifications.length > previousCount) {
+        const newNotification = data.notifications[0];
+        toast.info(newNotification.message);
+      }
+    });
 
     return () => {
-      off('notification', handleNewNotification);
+      unsubscribe();
     };
-  }, [on, off]);
+  }, []);
 
   const getNotificationPath = (notification: Notification): string => {
     const role = user?.role;
