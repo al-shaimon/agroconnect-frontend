@@ -29,7 +29,7 @@ export function Clarity(): null {
       t.src = 'https://www.clarity.ms/tag/' + i;
       y = l.getElementsByTagName(r)[0];
       y.parentNode?.insertBefore(t, y);
-    })(window as unknown as Record<string, unknown>, document, 'clarity', 'script', 'trop922sl0');
+    })(window as unknown as Record<string, unknown>, document, 'clarity', 'script', 'u0c70jph9n');
   }, []);
 
   return null;
