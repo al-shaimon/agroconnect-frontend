@@ -66,7 +66,7 @@ export const Navbar = ({ onMenuClick, isDashboardRoute = false }: NavbarProps) =
   return (
     <>
       <nav
-        className="sticky top-0 z-50 w-full border-b bg-white shadow-sm"
+        className="fixed top-0 left-0 z-50 w-full border-b bg-white shadow-sm"
         style={{ borderBottomColor: COLORS.border }}
       >
         <div className="container mx-auto px-4">

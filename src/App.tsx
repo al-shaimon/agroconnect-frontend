@@ -74,7 +74,7 @@ function App() {
         isDashboardRoute={isDashboardRoute}
       />
 
-      <div className="flex flex-1 overflow-x-hidden">
+      <div className="flex flex-1 overflow-x-hidden pt-16">
         {isAuthenticated && isDashboardRoute && (
           <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         )}
